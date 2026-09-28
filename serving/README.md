@@ -4,16 +4,26 @@ A FastAPI server with dynamic batching for the final SOTA-MOS ensemble. The desi
 [faster-UTMOSv2/serving](https://github.com/Scicom-AI-Enterprise-Organization/faster-UTMOSv2/tree/main/serving).
 
 ```
-bytes ─► [process pool]   decode, keep native rate, resample a 16 kHz copy
+bytes ─► [process pool]   decode; any rate ─► nearest trained rate (16/24/48 kHz) + a 16 kHz copy
       ─► [asyncio queue]  dynamic batching: MAX_BATCH clips, MAX_WAIT_MS, padded-size budget
       ─► [GPU thread]     Engine.score(batch): each SSL backbone once per batch, masked padding,
                           probe heads + fine-tuned folds ─► weighted MOS
-      ─► JSON {"mos", "sampling_rate", "duration_s", "batch_size", "gpu_ms", "total_ms"}
+      ─► JSON {"mos", "input_sampling_rate", "sampling_rate", "duration_s", "batch_size", "gpu_ms", "total_ms"}
 ```
 
 ## Why this shape
 
-**Clips arrive at 16, 24 or 48 kHz and at any length.** Every clip keeps its own rate end to end. The native waveform feeds the native-rate members and the rate input. The 16 kHz copy feeds the 16 kHz members.
+**Clips arrive at any rate and any length.** 16, 24 and 48 kHz pass through untouched. Any other rate is resampled to the nearest trained rate:
+
+| input rate | served as |
+|---:|---:|
+| 8 / 11.025 kHz | 16 kHz (up) |
+| 22.05 kHz | 24 kHz (up) |
+| 28 / 32 kHz | 24 kHz (down) |
+| 44.1 kHz | 48 kHz (up) |
+| 88.2 / 96 kHz | 48 kHz (down) |
+
+That rate feeds the native-rate members and the rate input. A 16 kHz copy, made from the original signal, feeds the 16 kHz members.
 
 **Variable lengths need length-aware batching.** UTMOSv2 crops every clip to a fixed 3 s window. We score the whole clip.
 The batch former sorts waiting clips by length. It cuts batches whose padded size (clips × longest clip) stays under `MAX_BATCH_SECONDS`.
@@ -27,7 +37,7 @@ Base models normalise over time in their first conv layer, so padding would shif
 
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/predict` | multipart `file` (wav, flac, ...). Returns `{"mos", "sampling_rate", "duration_s", "batch_size", "gpu_ms", "total_ms"}` |
+| POST | `/predict` | multipart `file` (wav, flac, ...). Returns `{"mos", "input_sampling_rate", "sampling_rate", "duration_s", "batch_size", "gpu_ms", "total_ms"}`. `sampling_rate` is the trained rate the clip was scored at |
 | GET | `/` | upload form |
 | GET | `/health` | system members, device, batching knobs |
 | GET | `/stats` | batches, average batch size, padding overhead |

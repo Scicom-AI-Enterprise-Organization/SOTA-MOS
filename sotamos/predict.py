@@ -10,14 +10,13 @@ their fold checkpoints; probe members average their fold models on frozen SSL fe
 Each run directory needs model.pt (train with `save_ckpt: true`). Every file is read at its own
 sampling rate. The SSL branch gets the waveform (resampled to 16 kHz, or the native samples for
 `input_mode: native`). The mel branch reads the native-rate spectrum on the common 0-24 kHz axis.
-Rates the model was not trained on are resampled up to the next trained rate (44.1 -> 48 kHz,
-22.05 -> 24 kHz, 32 -> 48 kHz, 8 -> 16 kHz; above 48 kHz -> 48 kHz), so no bandwidth is lost and the
-native-rate members see the time scale they were trained on. Scores are mixed-rate listening-test MOS.
+Rates the model was not trained on are resampled to the nearest trained rate (44.1 -> 48 kHz up,
+28 -> 24 kHz down, 22.05 -> 24 kHz, 8 -> 16 kHz, 96 -> 48 kHz), so the native-rate members always
+see a time scale they were trained on. Scores are mixed-rate listening-test MOS.
 """
 
 import argparse
 import json
-import math
 import sys
 from pathlib import Path
 
@@ -25,7 +24,7 @@ import numpy as np
 import soundfile as sf
 import torch
 
-from sotamos.data import SR_INDEX, TEST_INDEX, to_model_rates
+from sotamos.data import SR_INDEX, TEST_INDEX, nearest_trained_rate, to_model_rates
 from sotamos.features import normalise, raw_features
 from sotamos.model import MOSModel, SSLBackbone
 from sotamos.probes import layer_features, pooled_hidden_states, predict_fold
@@ -47,7 +46,7 @@ def load_audio(path):
 
 
 def nearest_rate(sr):
-    return min(SR_INDEX, key=lambda r: abs(math.log(sr / r)))
+    return nearest_trained_rate(sr)  # clips are already converted by to_model_rates; this is a guard
 
 
 class Predictor:

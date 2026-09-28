@@ -2,12 +2,12 @@
 
   SYSTEM=../results/final/both/system.json MAX_BATCH=16 PP_WORKERS=16 bash run_serve.sh
 
-  bytes -> [process pool] decode + resample to 16 kHz (native rate kept)
+  bytes -> [process pool] decode; any rate -> nearest trained rate (16/24/48 kHz) + a 16 kHz copy
         -> [asyncio queue] dynamic batching: fire at MAX_BATCH clips, when the oldest clip has waited
                            MAX_WAIT_MS, or when the padded batch would exceed MAX_BATCH_SECONDS
         -> [GPU thread]    Engine.score(batch): each SSL backbone runs once per batch, padded with an
                            attention mask; probe and fine-tuned heads -> weighted MOS
-        -> JSON {"mos", "sampling_rate", "duration_s", "batch_size", "gpu_ms", "total_ms"}
+        -> JSON {"mos", "input_sampling_rate", "sampling_rate", "duration_s", "batch_size", "gpu_ms", "total_ms"}
 
 Clips vary in length, so the batch former sorts the waiting clips by length and cuts batches whose
 padded size (clips x longest clip) stays under MAX_BATCH_SECONDS of 16 kHz audio. Nothing CPU- or
@@ -126,7 +126,7 @@ def _warmup():
     rng = np.random.default_rng(0)
     for sr, sec, b in [(16000, 3, 1), (48000, 5, MAX_BATCH), (24000, 8, 4)]:
         x = torch.from_numpy((0.05 * rng.standard_normal(sr * sec)).astype("float32"))
-        _, _, r16 = preprocess_worker.decode(_wav_bytes(x.numpy(), sr))
+        _, _, r16, _ = preprocess_worker.decode(_wav_bytes(x.numpy(), sr))
         ENGINE.score([(x, sr, torch.from_numpy(r16))] * b)
     log("[warmup] done")
 
@@ -181,13 +181,14 @@ async def warmup():
 async def predict(file: UploadFile = File(...)):
     raw = await file.read()
     loop = asyncio.get_event_loop()
-    native, sr, r16 = await loop.run_in_executor(PP, preprocess_worker.decode, raw)
+    native, sr, r16, sr_in = await loop.run_in_executor(PP, preprocess_worker.decode, raw)
     t0 = time.perf_counter()
     fut = loop.create_future()
     STATS["requests"] += 1
     await Q.put({"native": native, "sr": sr, "r16": r16, "fut": fut, "loop": loop})
     mos, gpu_ms, bs = await fut
-    return JSONResponse({"mos": round(mos, 4), "sampling_rate": sr, "duration_s": round(len(native) / sr, 3),
+    return JSONResponse({"mos": round(mos, 4), "input_sampling_rate": sr_in, "sampling_rate": sr,
+                         "duration_s": round(len(native) / sr, 3),
                          "batch_size": bs, "gpu_ms": round(gpu_ms, 2),
                          "total_ms": round((time.perf_counter() - t0) * 1000, 2)})
 

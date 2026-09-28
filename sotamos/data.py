@@ -24,15 +24,19 @@ def resample(x: torch.Tensor, sr: int, target: int) -> torch.Tensor:
     return x if sr == target else AF.resample(x, sr, target, **_RESAMPLE)
 
 
-def to_model_rates(x: torch.Tensor, sr: int):
-    """Waveform at any rate -> (waveform at a trained rate, that rate, 16 kHz copy).
+def nearest_trained_rate(sr: int) -> int:
+    """The trained rate (16 / 24 / 48 kHz) closest in Hz; an exact tie goes to the higher rate."""
+    return min(RATES, key=lambda r: (abs(r - sr), -r))
 
-    Rates the model was trained on (16 / 24 / 48 kHz) pass through. Any other rate is resampled up
-    to the next trained rate, so no bandwidth is thrown away (44.1 -> 48 kHz, 22.05 -> 24 kHz,
-    32 -> 48 kHz, 8 -> 16 kHz); rates above 48 kHz go down to 48 kHz. The 16 kHz copy is made
-    from the original signal.
+
+def to_model_rates(x: torch.Tensor, sr: int):
+    """Waveform at any rate -> (waveform at the nearest trained rate, that rate, 16 kHz copy).
+
+    16 / 24 / 48 kHz pass through. Any other rate is resampled to the nearest of them:
+    44.1 -> 48 kHz (up), 28 -> 24 kHz (down), 22.05 -> 24 kHz, 32 -> 24 kHz, 8 -> 16 kHz,
+    96 -> 48 kHz. The 16 kHz copy is made from the original signal.
     """
-    target = next((r for r in RATES if r >= sr), RATES[-1])
+    target = nearest_trained_rate(sr)
     return resample(x, sr, target), target, resample(x, sr, 16000)
 
 

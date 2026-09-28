@@ -31,7 +31,7 @@ def main():
     test = clips[clips.split == "test"].reset_index(drop=True)
     offline = pd.read_csv(offline_csv).set_index("clip")["pred"].reindex(test["clip"]).values
     decoded = [preprocess_worker.decode((root / p).read_bytes()) for p in test.path]
-    items = [(torch.from_numpy(n), sr, torch.from_numpy(r)) for n, sr, r in decoded]
+    items = [(torch.from_numpy(n), sr, torch.from_numpy(r)) for n, sr, r, _ in decoded]
     order = np.argsort([len(r) for _, _, r in items])
     eng = Engine(system)
     res = {}
