@@ -7,13 +7,16 @@
                            MAX_WAIT_MS, or when the padded batch would exceed MAX_BATCH_SECONDS
         -> [GPU thread]    Engine.score(batch): each SSL backbone runs once per batch, padded with an
                            attention mask; probe and fine-tuned heads -> weighted MOS
-        -> JSON {"mos", "input_sampling_rate", "sampling_rate", "duration_s", "batch_size", "gpu_ms", "total_ms"}
+        -> JSON {"mos", "reps", "gpu_ms", "total_ms", "batch_size", "input_sampling_rate", "sampling_rate", "duration_s"}
 
 Clips vary in length. Each batch starts from the oldest waiting clip (so long clips never starve)
 and adds the waiting clips closest to its length, while the padded size (clips x longest clip)
 stays under MAX_BATCH_SECONDS of 16 kHz audio. Nothing CPU- or GPU-bound runs on the event loop.
 
-Endpoints: POST /predict (multipart 'file') . GET /health . GET /stats . POST /warmup . GET /
+Endpoints match faster-UTMOSv2's server, so it is a drop-in replacement:
+  POST /predict (multipart 'file'; ?reps=N and ?dataset= accepted) -> {"mos", "reps", "gpu_ms", "total_ms",
+  "batch_size"} plus "input_sampling_rate", "sampling_rate", "duration_s". GET /health . GET /stats .
+  POST /warmup . GET /
 """
 
 import asyncio
@@ -26,7 +29,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -167,9 +170,11 @@ async def _startup():
 
 @app.get("/health")
 async def health():
-    return {"ok": True, "system": SYSTEM, "members": [m["name"] for m in ENGINE.members], "device": DEV,
-            "dtype": str(DTYPE), "max_batch": MAX_BATCH, "max_wait_ms": MAX_WAIT_MS,
-            "max_batch_seconds": MAX_BATCH_SECONDS, "pp_workers": PP_WORKERS}
+    # the keys faster-UTMOSv2's /health returns come first (same names, same types), then ours
+    return {"ok": True, "config": "sota-mos", "fold": -1, "dtype": str(DTYPE), "device": DEV,
+            "max_batch": MAX_BATCH, "max_wait_ms": MAX_WAIT_MS, "num_frames": 0, "spec_imgs": 0,
+            "feature_device": DEV, "pp_workers": PP_WORKERS,
+            "system": SYSTEM, "members": [m["name"] for m in ENGINE.members], "max_batch_seconds": MAX_BATCH_SECONDS}
 
 
 @app.get("/stats")
@@ -186,7 +191,12 @@ async def warmup():
 
 
 @app.post("/predict")
-async def predict(file: UploadFile = File(...)):
+async def predict(
+    file: UploadFile = File(...),
+    reps: int = Query(1, ge=1, le=16, description="accepted for faster-UTMOSv2 compatibility; SOTA-MOS is "
+                                                  "deterministic, so every pass gives the same score"),
+    dataset: str = Query(None, description="accepted for faster-UTMOSv2 compatibility and ignored"),
+):
     raw = await file.read()
     loop = asyncio.get_event_loop()
     native, sr, r16, sr_in = await loop.run_in_executor(PP, preprocess_worker.decode, raw)
@@ -195,10 +205,10 @@ async def predict(file: UploadFile = File(...)):
     STATS["requests"] += 1
     await Q.put({"native": native, "sr": sr, "r16": r16, "fut": fut, "loop": loop, "t": time.monotonic()})
     mos, gpu_ms, bs = await fut
-    return JSONResponse({"mos": round(mos, 4), "input_sampling_rate": sr_in, "sampling_rate": sr,
-                         "duration_s": round(len(native) / sr, 3),
-                         "batch_size": bs, "gpu_ms": round(gpu_ms, 2),
-                         "total_ms": round((time.perf_counter() - t0) * 1000, 2)})
+    # faster-UTMOSv2's response keys first, same order and types; the rate fields are additions
+    return JSONResponse({"mos": mos, "reps": reps, "gpu_ms": round(gpu_ms, 2),
+                         "total_ms": round((time.perf_counter() - t0) * 1000, 2), "batch_size": bs,
+                         "input_sampling_rate": sr_in, "sampling_rate": sr, "duration_s": round(len(native) / sr, 3)})
 
 
 PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -214,7 +224,7 @@ border-radius:10px;padding:20px}h1{font-size:22px;margin:0 0 4px}p{color:var(--m
 <script>document.getElementById('f').onchange=async e=>{const fd=new FormData();fd.append('file',e.target.files[0]);
 const r=await fetch('/predict',{method:'POST',body:fd});const j=await r.json();
 document.getElementById('m').textContent=j.mos.toFixed(2);
-document.getElementById('d').textContent=j.sampling_rate+' Hz, '+j.duration_s+' s, '+j.total_ms+' ms';};</script>
+document.getElementById('d').textContent=j.input_sampling_rate+' Hz in, scored at '+j.sampling_rate+' Hz, '+j.duration_s+' s, '+j.total_ms+' ms';};</script>
 </div></body></html>"""
 
 

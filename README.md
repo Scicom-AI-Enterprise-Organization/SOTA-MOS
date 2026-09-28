@@ -71,8 +71,11 @@ print(scorer(x, sr, x16))              # MOS on the mixed-rate listening-test sc
 cd serving
 SYSTEM=../model/system.json MAX_BATCH=16 PP_WORKERS=16 bash run_serve.sh
 curl -X POST http://127.0.0.1:8000/predict -F file=@clip_44k.wav
-# {"mos": 3.79, "input_sampling_rate": 44100, "sampling_rate": 48000, "duration_s": 5.6, "batch_size": 1, ...}
+# {"mos": 3.7948, "reps": 1, "gpu_ms": 141.17, "total_ms": 161.6, "batch_size": 1,
+#  "input_sampling_rate": 44100, "sampling_rate": 48000, "duration_s": 5.599}
 ```
+
+The API is the same as faster-UTMOSv2's server, so it replaces it without client changes.
 
 ## The task
 
@@ -267,23 +270,34 @@ That is above the 0.874 ceiling for a model that reproduces the train labels exa
 
 ![Serving latency](results/figures/serving_latency.png)
 
-One GPU, the 400 Track 3 eval clips (1,506 s of audio), the same client for both servers ([serving/benchmark.py](serving/benchmark.py)):
+One GPU, the 400 Track 3 eval clips (1,506 s of audio), the same client for both servers ([serving/benchmark.py](serving/benchmark.py)), run back to back:
 
 | concurrency | SOTA-MOS req/s | RTF | p50 ms | p95 ms | faster-UTMOSv2 req/s | RTF | p50 ms | p95 ms |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 10.3 | 39× | 96 | 115 | 9.8 | 37× | 101 | 109 |
-| 4 | 31.2 | 118× | 126 | 142 | 31.2 | 118× | 107 | 124 |
-| 8 | 40.9 | 154× | 203 | 228 | 46.8 | 176× | 136 | 489 |
-| 16 | 48.5 | 183× | 329 | 430 | 44.6 | 168× | 237 | 904 |
-| 32 | 54.8 | 206× | 590 | 633 | 48.8 | 184× | 531 | 1640 |
-| 64 | 63.6 | 240× | 492 | 3864 | 67.1 | 253× | 900 | 1326 |
+| 1 | 9.7 | 37× | 101 | 126 | 8.9 | 33× | 109 | 128 |
+| 4 | 30.1 | 113× | 128 | 155 | 29.4 | 111× | 124 | 168 |
+| 8 | 38.9 | 147× | 205 | 299 | 33.2 | 125× | 142 | 1400 |
+| 16 | 44.9 | 169× | 339 | 469 | 27.1 | 102× | 316 | 1696 |
+| 32 | 54.1 | 204× | 596 | 657 | 53.7 | 202× | 546 | 1235 |
+| 64 | 63.3 | 238× | 866 | 1663 | 63.6 | 240× | 949 | 1375 |
 
-**SOTA-MOS serves as fast as faster-UTMOSv2.** faster-UTMOSv2 scores one fold on a 3-second crop. SOTA-MOS scores the whole clip with 3 models × 5 folds.
+**SOTA-MOS serves as fast as faster-UTMOSv2 and holds up better at mid load.** faster-UTMOSv2 scores one fold on a 3-second crop. SOTA-MOS scores the whole clip with 3 models × 5 folds.
 Each frozen backbone runs once per batch and feeds its 5 fold heads, and mel features are computed once per batch.
+Every batch starts from the oldest waiting clip. An earlier batch former that took the shortest clips first starved long clips (p95 3.9 s at 64 concurrent requests).
 Served scores match the offline scores within 0.007 MOS on average (Pearson r ≥ 0.9998 at batch 1, 8 and 32).
 
-These numbers come from a batch former that always took the shortest waiting clips. At 64 concurrent requests that starved long clips (p95 3.9 s).
-The shipped server starts every batch from the oldest waiting clip instead. Its numbers will be re-measured on an idle GPU.
+**The server is a drop-in replacement for faster-UTMOSv2's server.** Same routes, same `file` field, same `?reps=` and `?dataset=` parameters
+(accepted; SOTA-MOS is deterministic and has no data-domain), same response keys in the same order and types, same status codes.
+It adds three keys after them: `input_sampling_rate`, `sampling_rate` (the trained rate the clip was scored at) and `duration_s`.
+
+```
+SOTA-MOS:       {"mos": 3.7948, "reps": 1, "gpu_ms": 141.17, "total_ms": 161.6, "batch_size": 1, "input_sampling_rate": 44100, "sampling_rate": 48000, "duration_s": 5.599}
+faster-UTMOSv2: {"mos": 3.21875, "reps": 1, "gpu_ms": 130.26, "total_ms": 150.69, "batch_size": 1}
+```
+
+`serving/check_api_compat.py` runs both servers side by side and checks every route: `POST /predict` (with and without `reps`/`dataset`),
+invalid `reps` (422), a missing file (422), non-audio bytes (500), `/health`, `/stats`, `/warmup` and `/`. All pass.
+faster-UTMOSv2's own `benchmark.py` runs against the SOTA-MOS server unchanged.
 
 ## Systems
 
