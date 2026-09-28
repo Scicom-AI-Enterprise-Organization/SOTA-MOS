@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Served scores vs offline scores on the 400 eval clips, at several batch sizes.
 
-  python check_equivalence.py ../results/final/both/system.json ../results/final/both/eval.csv
+  python check_equivalence.py ../results/final/both/system.json ../results/final/both/eval.csv [--eval]
 
 Batches mix sampling rates and lengths the way the server's batch former does (sorted by length).
-Reports MAE / max difference / Pearson r against the offline predictions, and the eval metrics of
-the served scores.
+Reports MAE / max difference / Pearson r against the offline predictions; with --eval also the eval
+metrics of the served scores (use only on the final system).
 """
 
 import json
@@ -26,6 +26,7 @@ from sotamos.metrics import evaluate  # noqa: E402
 
 def main():
     system, offline_csv = sys.argv[1], sys.argv[2]
+    show_eval = "--eval" in sys.argv  # off by default: only the final system gets scored on eval
     root = Path(__file__).resolve().parents[1]
     clips = pd.read_csv(root / "data/clips.csv")
     test = clips[clips.split == "test"].reset_index(drop=True)
@@ -41,11 +42,13 @@ def main():
             idx = order[i: i + bs]
             served[idx] = eng.score([items[j] for j in idx])
         d = np.abs(served - offline)
-        res[f"batch_{bs}"] = {"mae": float(d.mean()), "max": float(d.max()),
-                              "pearson": float(np.corrcoef(served, offline)[0, 1]),
-                              "eval": evaluate(served, test.mos_mix.values, test.condition.values)}
-        print(f"batch {bs:3d}: MAE {d.mean():.2e}  max {d.max():.2e}  r {res[f'batch_{bs}']['pearson']:.6f}  "
-              f"eval sys_SRCC {res[f'batch_{bs}']['eval']['sys_SRCC']:.3f} utt_LCC {res[f'batch_{bs}']['eval']['utt_LCC']:.3f}")
+        r = {"mae": float(d.mean()), "max": float(d.max()), "pearson": float(np.corrcoef(served, offline)[0, 1])}
+        line = f"batch {bs:3d}: MAE {d.mean():.2e}  max {d.max():.2e}  r {r['pearson']:.6f}"
+        if show_eval:
+            r["eval"] = evaluate(served, test.mos_mix.values, test.condition.values)
+            line += f"  eval sys_SRCC {r['eval']['sys_SRCC']:.3f} utt_LCC {r['eval']['utt_LCC']:.3f}"
+        res[f"batch_{bs}"] = r
+        print(line)
     json.dump(res, open(root / "results/serving_equivalence.json", "w"), indent=1)
 
 

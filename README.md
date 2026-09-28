@@ -91,6 +91,8 @@ A model that resamples everything to 16 kHz sees the same 0–8 kHz band for 16k
   Greedy forward selection with replacement (Caruana et al., 2004, at most 10 members) runs over every train+dev candidate:
   fine-tuned CV systems and frozen-feature probes. The score is the mean of utt LCC, utt SRCC, sys LCC and sys SRCC,
   computed on out-of-fold predictions for the 400 dev clips. The chosen ensemble is scored on eval once.
+- **One disclosed exception.** The server's equivalence check printed eval metrics for a 4-member test ensemble (sys SRCC 0.973).
+  The members were picked to cover every serving code path. That ensemble plays no part in selection, and the check now prints eval metrics only with `--eval`.
 
 ## Systems
 
