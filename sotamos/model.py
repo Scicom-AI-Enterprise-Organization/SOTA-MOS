@@ -50,15 +50,20 @@ class SSLBackbone(nn.Module):
     def frame_lengths(self, lens):
         return self.model._get_feat_extract_output_lengths(lens).long()
 
-    def forward(self, wav, lens):
+    def encode(self, wav, lens):
+        """The backbone pass. For a frozen backbone this is identical across folds and can be shared."""
         if self.do_normalize:
             mask = (torch.arange(wav.shape[1], device=wav.device)[None] < lens[:, None]).float()
             n = lens[:, None].float()
             mu = (wav * mask).sum(1, keepdim=True) / n
             var = (((wav - mu) * mask) ** 2).sum(1, keepdim=True) / n
             wav = (wav - mu) / torch.sqrt(var + 1e-7)
-        need_all = self.layer != "last"
-        out = self.model(wav, output_hidden_states=need_all)
+        return self.model(wav, output_hidden_states=self.layer != "last")
+
+    def forward(self, wav, lens, out=None):
+        """out: a precomputed encode(wav, lens), e.g. shared by the folds of a frozen-SSL member."""
+        if out is None:
+            out = self.encode(wav, lens)
         if self.layer == "last":
             h = out.last_hidden_state
         elif self.layer == "weighted":
@@ -189,7 +194,7 @@ class MOSModel(nn.Module):
 
     def forward(self, batch):
         wav, lens = batch["wav"], batch["lens"]
-        h, flens = self.ssl(wav, lens)
+        h, flens = self.ssl(wav, lens, batch.get("ssl_out"))
         h = self.ssl_proj(h)
         B, N, _ = h.shape
         parts = [h]

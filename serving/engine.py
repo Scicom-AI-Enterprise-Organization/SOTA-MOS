@@ -105,7 +105,7 @@ class Engine:
 
     @torch.no_grad()
     def _finetuned(self, folds, clips):
-        preds = []
+        preds, shared = [], {}
         for model, cfg, stats in folds:
             wav, lens = collate([n if cfg["input_mode"] == "native" else r for n, _, r in clips], True)
             b = {"wav": wav, "lens": lens,
@@ -123,6 +123,12 @@ class Engine:
                     b[which], b[f"{which}_lens"] = t, fl
             b = {k: v.to(self.device) for k, v in b.items()}
             with self._amp():
+                if cfg.get("freeze") == "all":
+                    # frozen backbone: identical in every fold, so encode once per batch and share it
+                    key = (cfg["backbone"], cfg.get("max_layers", 0), cfg["input_mode"])
+                    if shared.get("key") != key:
+                        shared.update(key=key, out=model.ssl.encode(b["wav"], b["lens"]))
+                    b["ssl_out"] = shared["out"]
                 preds.append(model(b)["score"].float().cpu().numpy())
         return np.mean(preds, 0)
 
