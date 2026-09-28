@@ -6,6 +6,8 @@ Job file: one job per line, `OUT_DIR<TAB>ARGS`, where ARGS go to
 `python -m sotamos.train --out OUT_DIR ARGS`. ARGS starting with `-m MODULE` run that module
 instead (e.g. `-m sotamos.utmos finetune ...`). Lines starting with # are ignored.
 A job whose OUT_DIR/done exists is skipped, so a crashed queue can simply be re-run.
+Each job is claimed atomically (OUT_DIR/.claim, O_EXCL) before it starts, so several queue
+processes can share job files without running anything twice. A failed job drops its claim.
 """
 
 import argparse
@@ -49,6 +51,12 @@ def main():
             except queue.Empty:
                 return
             Path(out).mkdir(parents=True, exist_ok=True)
+            if (Path(out) / "done").exists():
+                continue
+            try:
+                os.close(os.open(Path(out) / ".claim", os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+            except FileExistsError:
+                continue
             parts = shlex.split(rest)
             module = "sotamos.train"
             if parts[:1] == ["-m"]:
@@ -58,6 +66,8 @@ def main():
             t0 = time.time()
             with open(Path(out) / "train.log", "a") as log:
                 rc = subprocess.call(cmd, stdout=log, stderr=subprocess.STDOUT, env=env)
+            if rc != 0:
+                (Path(out) / ".claim").unlink(missing_ok=True)
             with lock:
                 stats["ok" if rc == 0 else "fail"] += 1
                 print(f"[queue] gpu{gpu} rc={rc} {time.time() - t0:.0f}s {out}  "

@@ -1,21 +1,5 @@
-exp/utmosv2/zeroshot/s0	-m sotamos.utmos zeroshot --fold 0
-exp/utmosv2/zeroshot/s1	-m sotamos.utmos zeroshot --fold 1
-exp/utmosv2/zeroshot/s2	-m sotamos.utmos zeroshot --fold 2
-exp/utmosv2/zeroshot/s3	-m sotamos.utmos zeroshot --fold 3
-exp/utmosv2/zeroshot/s4	-m sotamos.utmos zeroshot --fold 4
-exp/utmosv2/ft_single_test/s0	-m sotamos.utmos finetune --protocol dev --labels single --domains test --seed 0 --select sys_SRCC
-exp/utmosv2/ft_single_test/s1	-m sotamos.utmos finetune --protocol dev --labels single --domains test --seed 1 --select sys_SRCC
-exp/utmosv2/ft_single_test/s2	-m sotamos.utmos finetune --protocol dev --labels single --domains test --seed 2 --select sys_SRCC
-exp/utmosv2/ft_both_test/s0_f0	-m sotamos.utmos finetune --protocol cv --labels both --domains test --seed 0 --fold 0
-exp/utmosv2/ft_both_test/s0_f1	-m sotamos.utmos finetune --protocol cv --labels both --domains test --seed 0 --fold 1
-exp/utmosv2/ft_both_test/s0_f2	-m sotamos.utmos finetune --protocol cv --labels both --domains test --seed 0 --fold 2
-exp/utmosv2/ft_both_test/s0_f3	-m sotamos.utmos finetune --protocol cv --labels both --domains test --seed 0 --fold 3
-exp/utmosv2/ft_both_test/s0_f4	-m sotamos.utmos finetune --protocol cv --labels both --domains test --seed 0 --fold 4
-exp/utmosv2/ft_single_testsr/s0	-m sotamos.utmos finetune --protocol dev --labels single --domains test_sr --seed 0 --select sys_SRCC
-exp/utmosv2/ft_single_testsr/s1	-m sotamos.utmos finetune --protocol dev --labels single --domains test_sr --seed 1 --select sys_SRCC
-exp/utmosv2/ft_single_testsr/s2	-m sotamos.utmos finetune --protocol dev --labels single --domains test_sr --seed 2 --select sys_SRCC
-exp/utmosv2/ft_both_testsr/s0_f0	-m sotamos.utmos finetune --protocol cv --labels both --domains test_sr --seed 0 --fold 0
-exp/utmosv2/ft_both_testsr/s0_f1	-m sotamos.utmos finetune --protocol cv --labels both --domains test_sr --seed 0 --fold 1
-exp/utmosv2/ft_both_testsr/s0_f2	-m sotamos.utmos finetune --protocol cv --labels both --domains test_sr --seed 0 --fold 2
-exp/utmosv2/ft_both_testsr/s0_f3	-m sotamos.utmos finetune --protocol cv --labels both --domains test_sr --seed 0 --fold 3
-exp/utmosv2/ft_both_testsr/s0_f4	-m sotamos.utmos finetune --protocol cv --labels both --domains test_sr --seed 0 --fold 4
+exp/utmosv2/zeroshot/s0	-m sotamos.utmos --fold 0
+exp/utmosv2/zeroshot/s1	-m sotamos.utmos --fold 1
+exp/utmosv2/zeroshot/s2	-m sotamos.utmos --fold 2
+exp/utmosv2/zeroshot/s3	-m sotamos.utmos --fold 3
+exp/utmosv2/zeroshot/s4	-m sotamos.utmos --fold 4

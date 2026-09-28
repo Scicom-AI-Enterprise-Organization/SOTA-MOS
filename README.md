@@ -90,13 +90,33 @@ A model that resamples everything to 16 kHz sees the same 0–8 kHz band for 16k
 
 ## Systems
 
-| name | what it is |
-|---|---|
-| SSL-MOS | wav2vec2-base on 16 kHz audio, SHEET recipe (B03-style baseline) |
-| HighRateMOS Models 1–3 | wav2vec2-base fed native-rate samples, sampling-rate embedding, multi-scale CNN on the mel spectrogram, BLSTM, FC. Model 2 adds cross-attention and Model 3 adds MFCC |
-| HighRateMOS ensemble | Model 1 (best of 5 folds) + Models 2 and 3, as in paper Section V-D |
-| faster-UTMOSv2 | the pretrained VMC 2024 winner, zero-shot and fine-tuned on Track 3 with our folds |
-| ours | SSL + sampling-rate and listening-test embeddings + bandwidth-aware mel CNN, trained on train+dev labels |
+| name | what it is | input rates |
+|---|---|---|
+| SSL-MOS | wav2vec2-base, SHEET recipe (B03-style baseline) | everything resampled to 16 kHz |
+| HighRateMOS Models 1–3 | wav2vec2-base fed native-rate samples, sampling-rate embedding, multi-scale CNN on the mel spectrogram, BLSTM, FC. Model 2 adds cross-attention and Model 3 adds MFCC | native 16 / 24 / 48 kHz |
+| HighRateMOS ensemble | Model 1 (best of 5 folds) + Models 2 and 3, as in paper Section V-D | native |
+| faster-UTMOSv2 | the pretrained VMC 2024 winner, off the shelf (zero-shot), for comparison | resampled to 16 kHz |
+| ours | SSL on the waveform + multi-scale CNN on the native-rate mel spectrogram (common 0–24 kHz axis) + sampling-rate and listening-test embeddings, trained on train+dev labels | native 16 / 24 / 48 kHz |
+
+Our model reads every clip at its own sampling rate. The mel branch places all rates on one 0–24 kHz axis, so a 48 kHz clip contributes its 8–24 kHz band and a 16 kHz clip shows its 8 kHz ceiling.
+
+## Experiments
+
+Launched 2026-09-28 on 8×H20, 4 runs per GPU. Every run writes its dev (or out-of-fold) and eval predictions. Selection only reads the dev side.
+
+| group | system | runs | protocol | labels | status |
+|---|---|---:|---|---|---|
+| replication | SSL-MOS 16 kHz | 3 seeds | dev selection | train | running |
+| replication | HighRateMOS Model 1 | 3 seeds | dev selection | train | running |
+| replication | HighRateMOS Model 2 | 3 seeds | dev selection | train | running |
+| replication | HighRateMOS Model 3 | 3 seeds | dev selection | train | running |
+| replication | HighRateMOS Model 1, 5-fold (training phase) | 3 seeds × 5 folds | CV on train labels | train | running |
+| replication | Models 1–3 with SSL lr 2e-5 | 3 × 3 seeds | dev selection | train | queued |
+| comparison | faster-UTMOSv2, pretrained, zero-shot | 5 folds | none | none | running |
+| ours | 17 variants: base; labels mix-only / train-only; native-rate SSL input; no mel; no SR embedding; pooled head; weighted layers; BLSTM; condition-balanced sampling; HighRateMOS loss; 6 other backbones | 17 × 5 folds | 5-fold CV by sentence | train+dev | queued |
+| probes | ridge on frozen SSL layers: 9 backbones × 2 input modes (16 kHz, native) | 18 feature sets | 5-fold CV by sentence | train+dev | features extracted |
+
+**126 training runs** in total: 36 replication, 5 UTMOSv2, 85 ours. Plus 18 frozen-feature probes.
 
 ## Results
 
