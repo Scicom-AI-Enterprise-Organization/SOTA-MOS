@@ -123,7 +123,7 @@ The paper fixes the building blocks and the optimiser. We filled in the rest as 
 
 ## Experiments
 
-Launched 2026-09-28 on 8×H20, 4 runs per GPU. Every run writes its dev (or out-of-fold) and eval predictions. Selection only reads the dev side.
+Every run writes its dev (or out-of-fold) and eval predictions. Selection only reads the dev side.
 
 | group | system | runs | protocol | labels | status |
 |---|---|---:|---|---|---|
@@ -168,7 +168,7 @@ That is above the 0.874 ceiling for a model that reproduces the train labels exa
 
 ## Setup
 
-Training runs on a remote GPU box. [claude-ping](https://github.com/Scicom-AI-Enterprise-Organization/claude-ping) keeps one persistent SSH connection open, and `uv` manages the environment.
+Training runs on a remote machine. [claude-ping](https://github.com/Scicom-AI-Enterprise-Organization/claude-ping) keeps one persistent SSH connection open, and `uv` manages the environment.
 
 ```bash
 CP=../claude-ping/claude-ping

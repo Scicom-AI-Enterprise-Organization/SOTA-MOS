@@ -36,8 +36,8 @@ def candidates():
             continue
         cfg_labels = next(iter(preds.values()))["folds"][0]["cfg"]["labels"]
         group = "single" if cfg_labels == "single" else "both"
-        oof = pd.concat([p["sel"] for p in preds.values()], axis=1).mean(1)
-        test = pd.concat([p["test"] for p in preds.values()], axis=1).mean(1)
+        oof = pd.concat([p["sel"] for p in preds.values()], axis=1).mean(axis=1)
+        test = pd.concat([p["test"] for p in preds.values()], axis=1).mean(axis=1)
         cands[group][f"ft:{d.name}"] = (oof, test)
     for pattern, kind in [("results/probe/*_oof.csv", "ridge"), ("results/probe_krr/*_oof.csv", "krr")]:
         for f in sorted(glob.glob(pattern)):

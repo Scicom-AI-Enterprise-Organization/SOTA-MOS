@@ -168,7 +168,8 @@ def main():
     model = MOSModel(cfg).to(device)
     ssl_params = [p for n, p in model.named_parameters() if n.startswith("ssl.model") and p.requires_grad]
     other = [p for n, p in model.named_parameters() if not n.startswith("ssl.model") and p.requires_grad]
-    groups = [{"params": ssl_params, "lr": cfg["lr_ssl"]}, {"params": other, "lr": cfg["lr"]}]
+    groups = [g for g in [{"params": ssl_params, "lr": cfg["lr_ssl"]}, {"params": other, "lr": cfg["lr"]}]
+              if g["params"]]  # a frozen SSL leaves its group empty
     if cfg["optimizer"] == "sgd":
         opt = torch.optim.SGD(groups, momentum=cfg["momentum"], weight_decay=cfg["weight_decay"])
     elif cfg["optimizer"] == "adamw":

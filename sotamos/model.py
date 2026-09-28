@@ -181,6 +181,12 @@ class MOSModel(nn.Module):
         else:
             raise ValueError(head)
 
+    def train(self, mode: bool = True):
+        super().train(mode)
+        if self.cfg.get("freeze", "none") == "all":
+            self.ssl.model.eval()  # frozen features: no dropout noise
+        return self
+
     def forward(self, batch):
         wav, lens = batch["wav"], batch["lens"]
         h, flens = self.ssl(wav, lens)

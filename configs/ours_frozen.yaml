@@ -1,0 +1,28 @@
+# Ours, frozen SSL: weighted sum of the early layers of a frozen SSL model (the probes put the
+# quality signal at 15-30% of the depth) + multi-scale CNN on the 0-24 kHz mel spectrogram +
+# sampling-rate and listening-test embeddings -> mean/std pooling -> MLP. Only the head trains.
+backbone: facebook/hubert-large-ll60k
+freeze: all
+layer: weighted
+max_layers: 6
+input_mode: resample16k
+d_ssl_proj: 256
+sr_emb: 16
+test_emb: 16
+mel: true
+head: pool
+labels: both
+protocol: cv
+k_folds: 5
+loss: {l2: 1.0, contrastive: 0.5}
+loss_params: {tau: 0.25, margin: 0.1}
+optimizer: adamw
+lr: 1.0e-3
+weight_decay: 0.01
+warmup_steps: 100
+batch_size: 16
+select: utt_LCC+utt_MSE
+eval_every: 50
+patience: 30
+max_steps: 6000
+save_ckpt: true

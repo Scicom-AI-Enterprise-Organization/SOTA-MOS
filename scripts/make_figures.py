@@ -121,5 +121,35 @@ def condition_scatter(pred_csv, fname, title):
     ps.save(fig, FIG / fname)
 
 
+def replication():
+    """Per-seed eval sys-SRCC of every replication system, with the paper's number as a line."""
+    rows = {r["system"]: r for r in json.load(open("results/rep_summary.json"))}
+    order = [("sslmos_16k", "SSL-MOS, 16 kHz"), ("hrm_model1_cv", "Model 1, selected on train labels (5-fold)"),
+             ("hrm_model1", "Model 1"), ("hrm_model2", "Model 2"), ("hrm_model3", "Model 3"),
+             ("hrm_model1_lrssl2e-5", "Model 1, SSL lr 2e-5"), ("hrm_model2_lrssl2e-5", "Model 2, SSL lr 2e-5"),
+             ("hrm_model3_lrssl2e-5", "Model 3, SSL lr 2e-5"),
+             ("HighRateMOS ensemble (ours)", "HighRateMOS ensemble (Model 1 best fold + 2 + 3)")]
+    order = [(k, lab) for k, lab in order if k in rows]
+    fig, axes = plt.subplots(1, 2, figsize=(12, 0.5 * len(order) + 1.3), sharey=True)
+    for ax, metric, paper in [(axes[0], "sys_SRCC", 0.955), (axes[1], "utt_LCC", 0.847)]:
+        for i, (k, lab) in enumerate(order[::-1]):
+            seeds = [r[f"eval_{metric}"] for r in rows[k]["per_seed"]]
+            ens = rows[k]["eval_ens"][metric]
+            col = ps.SERIES[1] if k.startswith("HighRateMOS") else ps.SERIES[0]
+            ax.scatter(seeds, [i] * len(seeds), s=30, color=col, edgecolor=ps.SURFACE, zorder=3,
+                       label="single seed" if i == 0 else None)
+            ax.scatter([ens], [i], s=90, marker="|", color=ps.INK, linewidth=2, zorder=4,
+                       label="seeds averaged" if i == 0 else None)
+        ax.axvline(paper, color=ps.SERIES[7], lw=1.2, ls="--", label=f"paper (T17): {paper}")
+        ax.set_xlabel(f"eval {metric.replace('_', ' ')}")
+        ax.grid(axis="y", visible=False)
+    axes[0].set_yticks(range(len(order)))
+    axes[0].set_yticklabels([lab for _, lab in order[::-1]], fontsize=8.5)
+    axes[0].legend(loc="lower left", fontsize=7.5)
+    fig.suptitle("HighRateMOS replication on eval: one dot per training seed", fontsize=11, fontweight="bold",
+                 color=ps.INK)
+    ps.save(fig, FIG / "replication_seeds.png")
+
+
 if __name__ == "__main__":
-    {"probes": probes, "ablation": ablation}[sys.argv[1]]()
+    {"probes": probes, "ablation": ablation, "replication": replication}[sys.argv[1]]()

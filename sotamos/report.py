@@ -69,7 +69,7 @@ def system_predictions(system_dir, k_folds=5):
             if len(rs) < k_folds:
                 continue
             oof = pd.concat([r["val"] for r in rs])
-            test = pd.concat([r["test"] for r in rs], axis=1).mean(1)
+            test = pd.concat([r["test"] for r in rs], axis=1).mean(axis=1)
             out[seed] = {"sel": oof, "test": test, "kind": "oof", "folds": rs}
     return out
 
@@ -83,8 +83,8 @@ def summarize(system_dir, label=None):
         rows.append({"seed": seed, **{f"sel_{k}": v for k, v in score_dev(p["sel"]).items()},
                      **{f"eval_{k}": v for k, v in score_eval(p["test"]).items()}})
     per_seed = pd.DataFrame(rows)
-    sel_ens = pd.concat([p["sel"] for p in preds.values()], axis=1).mean(1)
-    test_ens = pd.concat([p["test"] for p in preds.values()], axis=1).mean(1)
+    sel_ens = pd.concat([p["sel"] for p in preds.values()], axis=1).mean(axis=1)
+    test_ens = pd.concat([p["test"] for p in preds.values()], axis=1).mean(axis=1)
     return {
         "system": label or Path(system_dir).name,
         "kind": next(iter(preds.values()))["kind"],
@@ -109,8 +109,8 @@ def highratemos_ensemble(rep_dir="exp/rep", suffix=""):
         if len(folds) < 5 or seed not in m2 or seed not in m3:
             continue
         best = max(folds, key=lambda r: score_dev(r["pool"])["sys_SRCC"])
-        sel = pd.concat([best["pool"], m2[seed]["val"], m3[seed]["val"]], axis=1).mean(1)
-        test = pd.concat([best["test"], m2[seed]["test"], m3[seed]["test"]], axis=1).mean(1)
+        sel = pd.concat([best["pool"], m2[seed]["val"], m3[seed]["val"]], axis=1).mean(axis=1)
+        test = pd.concat([best["test"], m2[seed]["test"], m3[seed]["test"]], axis=1).mean(axis=1)
         sel_preds.append(sel)
         test_preds.append(test)
         rows.append({"seed": seed, "best_fold": best["fold"],
@@ -118,8 +118,8 @@ def highratemos_ensemble(rep_dir="exp/rep", suffix=""):
                      **{f"eval_{k}": v for k, v in score_eval(test).items()}})
     if not rows:
         return None
-    sel_ens = pd.concat(sel_preds, axis=1).mean(1)
-    test_ens = pd.concat(test_preds, axis=1).mean(1)
+    sel_ens = pd.concat(sel_preds, axis=1).mean(axis=1)
+    test_ens = pd.concat(test_preds, axis=1).mean(axis=1)
     return {"system": "HighRateMOS ensemble (ours)" + suffix, "kind": "dev", "n_seeds": len(rows),
             "per_seed": pd.DataFrame(rows), "sel_ens": score_dev(sel_ens), "eval_ens": score_eval(test_ens),
             "sel_pred": sel_ens, "test_pred": test_ens}

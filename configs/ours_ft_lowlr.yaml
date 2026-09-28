@@ -1,0 +1,27 @@
+# Ours, gentle fine-tuning: as ours_base but on a truncated SSL with a weighted layer sum,
+# SSL lr 1e-5 (head 3e-4), 200 warmup steps, and selection on LCC - MSE so every fold stays
+# calibrated (per-fold offsets otherwise break the pooled out-of-fold correlation).
+backbone: facebook/hubert-large-ll60k
+layer: weighted
+max_layers: 6
+input_mode: resample16k
+sr_emb: 16
+test_emb: 16
+mel: true
+head: frame
+labels: both
+protocol: cv
+k_folds: 5
+loss: {l2: 1.0, contrastive: 0.5}
+loss_params: {tau: 0.25, margin: 0.1}
+optimizer: adamw
+lr: 3.0e-4
+lr_ssl: 1.0e-5
+weight_decay: 0.01
+warmup_steps: 200
+batch_size: 16
+select: utt_LCC+utt_MSE
+eval_every: 50
+patience: 40
+max_steps: 6000
+save_ckpt: true

@@ -3,6 +3,7 @@
   uv run python scripts/make_jobs.py phase1   # replication (train labels, dev selection)
   uv run python scripts/make_jobs.py phase2   # ours: CV ablations
   uv run python scripts/make_jobs.py phase3   # ours on truncated SSL backbones
+  uv run python scripts/make_jobs.py phase4   # frozen-SSL heads and gentle fine-tuning
   uv run python scripts/make_jobs.py utmos    # faster-UTMOSv2: pretrained, zero-shot
 """
 
@@ -84,6 +85,30 @@ def phase3():
     return jobs
 
 
+BACKBONES = {  # name: (HF id, kept layers: just above the best probe layer)
+    "hubert_large": ("facebook/hubert-large-ll60k", 6),
+    "wavlm_large": ("microsoft/wavlm-large", 8),
+    "xlsr300m": ("facebook/wav2vec2-xls-r-300m", 10),
+    "xlsr1b": ("facebook/wav2vec2-xls-r-1b", 14),
+    "d2v_large": ("facebook/data2vec-audio-large", 4),
+    "w2v2_large": ("facebook/wav2vec2-large-lv60", 20),
+    "wavlm_base": ("microsoft/wavlm-base-plus", 4),
+    "hubert_base": ("facebook/hubert-base-ls960", 4),
+}
+
+
+def phase4():
+    """Frozen-SSL heads (train+dev and train-only) and gentle fine-tuning, on 8 backbones."""
+    jobs = []
+    for bb, (hf, L) in BACKBONES.items():
+        common = f"backbone={hf} max_layers={L}"
+        jobs += cv_runs(f"cv/frozen_{bb}", "configs/ours_frozen.yaml", extra=f"--set {common}")
+        jobs += cv_runs(f"cv/frozen_{bb}_single", "configs/ours_frozen.yaml",
+                        extra=f"--set {common} labels=single test_emb=0")
+        jobs += cv_runs(f"cv/ftlow_{bb}", "configs/ours_ft_lowlr.yaml", extra=f"--set {common}")
+    return jobs
+
+
 def utmos():
     # faster-UTMOSv2 off the shelf: each pretrained fold, zero-shot
     return [(f"exp/utmosv2/zeroshot/s{f}", f"-m sotamos.utmos --fold {f}") for f in FOLDS]
@@ -91,7 +116,7 @@ def utmos():
 
 if __name__ == "__main__":
     phase = sys.argv[1]
-    jobs = {"phase1": phase1, "phase2": phase2, "phase3": phase3, "utmos": utmos}[phase]()
+    jobs = {"phase1": phase1, "phase2": phase2, "phase3": phase3, "phase4": phase4, "utmos": utmos}[phase]()
     Path("jobs").mkdir(exist_ok=True)
     with open(f"jobs/{phase}.txt", "w") as f:
         for out, args in jobs:
