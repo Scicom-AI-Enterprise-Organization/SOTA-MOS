@@ -74,14 +74,16 @@ def system_predictions(system_dir, k_folds=5):
     return out
 
 
-def summarize(system_dir, label=None):
+def summarize(system_dir, label=None, with_eval=True):
     preds = system_predictions(system_dir)
     if not preds:
         return None
     rows = []
     for seed, p in preds.items():
-        rows.append({"seed": seed, **{f"sel_{k}": v for k, v in score_dev(p["sel"]).items()},
-                     **{f"eval_{k}": v for k, v in score_eval(p["test"]).items()}})
+        row = {"seed": seed, **{f"sel_{k}": v for k, v in score_dev(p["sel"]).items()}}
+        if with_eval:
+            row.update({f"eval_{k}": v for k, v in score_eval(p["test"]).items()})
+        rows.append(row)
     per_seed = pd.DataFrame(rows)
     sel_ens = pd.concat([p["sel"] for p in preds.values()], axis=1).mean(axis=1)
     test_ens = pd.concat([p["test"] for p in preds.values()], axis=1).mean(axis=1)
@@ -91,7 +93,7 @@ def summarize(system_dir, label=None):
         "n_seeds": len(preds),
         "per_seed": per_seed,
         "sel_ens": score_dev(sel_ens),
-        "eval_ens": score_eval(test_ens),
+        "eval_ens": score_eval(test_ens) if with_eval else None,
         "sel_pred": sel_ens,
         "test_pred": test_ens,
     }
@@ -128,6 +130,13 @@ def highratemos_ensemble(rep_dir="exp/rep", suffix=""):
 def fmt_table(summaries, published=None, sel_cols=("sys_SRCC", "utt_LCC")):
     """Markdown table: selection-side columns, then eval (8 official metrics) for the seed ensemble,
     plus the per-seed mean +- std of eval sys_SRCC."""
+    with_eval = all(s is None or s["eval_ens"] is not None for s in summaries)
+    if not with_eval:  # out-of-fold only
+        head = ["system", "seeds"] + [c.replace("_", " ") for c in COLUMNS]
+        lines = ["| " + " | ".join(head) + " |", "|" + "---|" * len(head)]
+        for s in sorted((s for s in summaries if s), key=lambda s: -s["sel_ens"]["utt_LCC"]):
+            lines.append("| " + " | ".join([s["system"], str(s["n_seeds"])] + [f"{s['sel_ens'][c]:.3f}" for c in COLUMNS]) + " |")
+        return "\n".join(lines)
     head = ["system", "seeds"] + [f"sel {c}" for c in sel_cols] + [c.replace("_", " ") for c in COLUMNS] + \
            ["sys SRCC per seed"]
     lines = ["| " + " | ".join(head) + " |", "|" + "---|" * len(head)]

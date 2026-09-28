@@ -153,5 +153,117 @@ def replication():
     ps.save(fig, FIG / "replication_seeds.png")
 
 
+KIND_COLOR = {"published": ps.AXIS, "replication": ps.SERIES[0], "utmos": ps.SERIES[2],
+              "ours-train": ps.SERIES[4], "ours": ps.SERIES[1]}
+KIND_LABEL = {"published": "AudioMOS 2025 Track 3 teams (published)", "replication": "HighRateMOS, our replication",
+              "utmos": "faster-UTMOSv2, off the shelf", "ours-train": "ours, train labels only",
+              "ours": "ours, train + dev labels"}
+
+
+def final_systems():
+    """(label, kind, metrics) for every system in the headline comparison."""
+    rows = [(n.replace("T17 HighRateMOS", "T17 HighRateMOS (paper)"), "published", r.to_dict())
+            for n, r in PUBLISHED.iterrows()]
+    rep = {r["system"]: r for r in json.load(open("results/rep_summary.json"))}
+    if "HighRateMOS ensemble (ours)" in rep:
+        rows.append(("HighRateMOS, replicated (3 seeds)", "replication", rep["HighRateMOS ensemble (ours)"]["eval_ens"]))
+    ut = Path("results/utmosv2_summary.json")
+    if ut.exists():
+        rows.append(("faster-UTMOSv2, zero-shot", "utmos", json.load(open(ut))[0]["eval_ens"]))
+    fin = Path("results/final/summary.json")
+    if fin.exists():
+        f = json.load(open(fin))
+        if "train-only" in f:
+            rows.append(("ours, train labels only", "ours-train", f["train-only"]["eval"]))
+        if "train+dev" in f:
+            rows.append(("ours, train + dev labels", "ours", f["train+dev"]["eval"]))
+    return rows
+
+
+def final_grid():
+    """All 8 official metrics on eval, one panel each. Every panel uses the same row order
+    (sorted by the primary metric, sys SRCC), so a row is the same system across panels."""
+    rows = sorted(final_systems(), key=lambda r: r[2]["sys_SRCC"])
+    labels = [r[0] for r in rows]
+    fig, axes = plt.subplots(2, 4, figsize=(15, 0.36 * len(rows) * 2 + 2.4), sharey=True)
+    y = np.arange(len(rows))
+    for ax, metric in zip(axes.flat, COLUMNS):
+        lower = metric.endswith("MSE")
+        vals = [r[2][metric] for r in rows]
+        best = min(vals) if lower else max(vals)
+        for i, (lab, kind, m) in enumerate(rows):
+            ax.barh(i, m[metric], height=0.66, color=KIND_COLOR[kind], edgecolor=ps.SURFACE)
+            ax.text(m[metric], i, f" {m[metric]:.3f}", va="center", fontsize=7,
+                    color=ps.INK if m[metric] == best else ps.INK2, fontweight="bold" if m[metric] == best else None)
+        ax.set_xlim(0 if lower else max(0, min(vals) - 0.08), max(vals) * (1.28 if lower else 1.04))
+        ax.set_title(metric.replace("_", " ") + (" (lower is better)" if lower else ""), fontsize=9.5)
+        ax.grid(axis="y", visible=False)
+    for ax in axes[:, 0]:
+        ax.set_yticks(y)
+        ax.set_yticklabels(labels, fontsize=7.5)
+    kinds = [k for k in KIND_COLOR if any(r[1] == k for r in rows)]
+    fig.legend([plt.Rectangle((0, 0), 1, 1, color=KIND_COLOR[k]) for k in kinds], [KIND_LABEL[k] for k in kinds],
+               loc="lower center", ncol=len(kinds), fontsize=8.5, frameon=False, bbox_to_anchor=(0.5, -0.02))
+    fig.suptitle("AudioMOS 2025 Track 3 eval: all eight official metrics (rows sorted by sys SRCC; best value in bold)",
+                 fontsize=12, fontweight="bold", color=ps.INK)
+    ps.save(fig, FIG / "final_all_metrics.png")
+
+
+def final_bars():
+    rows = final_systems()
+    eval_bars([(lab, m["sys_SRCC"], None, {"ours-train": "ours", **{k: k for k in KIND_COLOR}}[kind]) for lab, kind, m in rows],
+              "final_sys_srcc.png", "sys_SRCC", "Track 3 eval: system-level SRCC (primary metric)")
+
+
+def final_scatter():
+    """Predicted vs true condition MOS on eval: HighRateMOS replication vs ours (train + dev)."""
+    clips = pd.read_csv("data/clips.csv")
+    test = clips[clips.split == "test"].set_index("clip")
+    panels = [("results/preds/rep__HighRateMOS_ensemble_ours__eval.csv", "HighRateMOS, replicated"),
+              ("results/final/both/eval.csv", "ours, train + dev labels")]
+    panels = [p for p in panels if Path(p[0]).exists()]
+    fig, axes = plt.subplots(1, len(panels), figsize=(5.8 * len(panels), 5.3), squeeze=False)
+    for ax, (path, title) in zip(axes[0], panels):
+        pr = pd.read_csv(path).set_index("clip")["pred"]
+        t = test.loc[pr.index].assign(pred=pr)
+        g = t.groupby("condition").agg(pred=("pred", "mean"), true=("mos_mix", "mean"), sr=("sr_tag", "first"))
+        srcc = stats.spearmanr(g.true, g.pred)[0]
+        lo, hi = 1.5, 4.5
+        ax.plot([lo, hi], [lo, hi], color=ps.AXIS, lw=1, ls="--")
+        for sr in ["16k", "24k", "48k"]:
+            q = g[g.sr == sr]
+            ax.scatter(q.true, q.pred, s=46, color=ps.SR_COLOR[sr], marker=ps.SR_MARKER[sr], edgecolor=ps.SURFACE,
+                       linewidth=1.2, label=sr, zorder=3)
+        for c, r in g.iterrows():
+            ax.annotate(c, (r.true, r.pred), xytext=(4, -3), textcoords="offset points", fontsize=6.3, color=ps.INK2)
+        ax.set_xlim(lo, hi)
+        ax.set_ylim(lo, hi)
+        ax.set_xlabel("true condition MOS (eval)")
+        ax.set_ylabel("predicted condition MOS")
+        ax.set_title(f"{title}: sys SRCC {srcc:.3f}")
+        ax.legend(loc="upper left")
+    ps.save(fig, FIG / "final_conditions.png")
+
+
+def serving():
+    rows = json.load(open("results/serving_bench.json"))
+    fig, axes = plt.subplots(1, 3, figsize=(13, 3.8))
+    c = [r["concurrency"] for r in rows]
+    for ax, key, lab in [(axes[0], "rtf", "RTF (audio seconds per wall second)"), (axes[1], "p50_ms", "p50 latency (ms)"),
+                         (axes[2], "batch_avg", "average GPU batch size")]:
+        ax.plot(c, [r[key] for r in rows], marker="o", color=ps.SERIES[1], lw=2)
+        for x, r in zip(c, rows):
+            ax.annotate(f"{r[key]:.0f}" if key != "batch_avg" else f"{r[key]:.1f}", (x, r[key]), xytext=(0, 6),
+                        textcoords="offset points", ha="center", fontsize=7.5, color=ps.INK2)
+        ax.set_xscale("log", base=2)
+        ax.set_xticks(c)
+        ax.set_xticklabels(c)
+        ax.set_xlabel("concurrent requests")
+        ax.set_title(lab, fontsize=10)
+    fig.suptitle("Serving the final ensemble (dynamic batching, one GPU)", fontsize=11, fontweight="bold", color=ps.INK)
+    ps.save(fig, FIG / "serving.png")
+
+
 if __name__ == "__main__":
-    {"probes": probes, "ablation": ablation, "replication": replication}[sys.argv[1]]()
+    {"probes": probes, "ablation": ablation, "replication": replication, "final_grid": final_grid,
+     "final_bars": final_bars, "final_scatter": final_scatter, "serving": serving}[sys.argv[1]]()
