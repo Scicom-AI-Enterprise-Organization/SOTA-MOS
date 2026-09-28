@@ -1,0 +1,22 @@
+# HighRateMOS Model 1 (arXiv 2506.21951, Fig. 1): wav2vec2-base fed native-rate samples,
+# learnable sampling-rate embedding, multi-scale CNN over the mel spectrogram, concatenated
+# per frame -> BLSTM -> FC. Paper hyperparameters: AdamW lr 1e-3, batch 8, stop when dev
+# system-level SRCC has not improved for 2000 steps. Loss per the challenge summary:
+# MAE + rank-based (UTMOS contrastive) + correlation (LCC).
+backbone: facebook/wav2vec2-base
+input_mode: native
+sr_emb: 32
+mel: true
+blstm: true
+head: frame
+loss: {l1: 1.0, contrastive: 1.0, lcc: 1.0}
+loss_params: {tau: 0.0, margin: 0.1}
+optimizer: adamw
+lr: 1.0e-3
+batch_size: 8
+protocol: dev
+labels: single
+select: sys_SRCC
+eval_every: 100
+patience: 20
+max_steps: 20000

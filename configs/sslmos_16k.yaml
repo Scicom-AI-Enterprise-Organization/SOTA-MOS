@@ -1,0 +1,16 @@
+# SSL-MOS (B03-style baseline): wav2vec2-base on 16 kHz audio, SHEET ssl-mos-wav2vec2 recipe.
+backbone: facebook/wav2vec2-base
+input_mode: resample16k
+head: frame
+loss: {l1_frame: 1.0}
+loss_params: {tau: 0.5}
+optimizer: sgd
+lr: 1.0e-3
+momentum: 0.9
+batch_size: 16
+protocol: dev
+labels: single
+select: sys_SRCC
+eval_every: 100
+patience: 20
+max_steps: 20000

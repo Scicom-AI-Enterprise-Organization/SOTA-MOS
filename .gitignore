@@ -1,0 +1,11 @@
+.env
+scicom
+claude-ping.json
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+data/
+exp/
+*.pt
+*.ckpt

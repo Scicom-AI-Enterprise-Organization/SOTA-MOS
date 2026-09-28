@@ -1,0 +1,36 @@
+exp/rep/sslmos_16k/s0	--config configs/sslmos_16k.yaml --seed 0
+exp/rep/sslmos_16k/s1	--config configs/sslmos_16k.yaml --seed 1
+exp/rep/sslmos_16k/s2	--config configs/sslmos_16k.yaml --seed 2
+exp/rep/hrm_model1/s0	--config configs/hrm_model1.yaml --seed 0
+exp/rep/hrm_model1/s1	--config configs/hrm_model1.yaml --seed 1
+exp/rep/hrm_model1/s2	--config configs/hrm_model1.yaml --seed 2
+exp/rep/hrm_model2/s0	--config configs/hrm_model2.yaml --seed 0
+exp/rep/hrm_model2/s1	--config configs/hrm_model2.yaml --seed 1
+exp/rep/hrm_model2/s2	--config configs/hrm_model2.yaml --seed 2
+exp/rep/hrm_model3/s0	--config configs/hrm_model3.yaml --seed 0
+exp/rep/hrm_model3/s1	--config configs/hrm_model3.yaml --seed 1
+exp/rep/hrm_model3/s2	--config configs/hrm_model3.yaml --seed 2
+exp/rep/hrm_model1_cv/s0_f0	--config configs/hrm_model1.yaml --seed 0 --fold 0 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s0_f1	--config configs/hrm_model1.yaml --seed 0 --fold 1 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s0_f2	--config configs/hrm_model1.yaml --seed 0 --fold 2 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s0_f3	--config configs/hrm_model1.yaml --seed 0 --fold 3 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s0_f4	--config configs/hrm_model1.yaml --seed 0 --fold 4 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s1_f0	--config configs/hrm_model1.yaml --seed 1 --fold 0 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s1_f1	--config configs/hrm_model1.yaml --seed 1 --fold 1 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s1_f2	--config configs/hrm_model1.yaml --seed 1 --fold 2 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s1_f3	--config configs/hrm_model1.yaml --seed 1 --fold 3 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s1_f4	--config configs/hrm_model1.yaml --seed 1 --fold 4 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s2_f0	--config configs/hrm_model1.yaml --seed 2 --fold 0 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s2_f1	--config configs/hrm_model1.yaml --seed 2 --fold 1 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s2_f2	--config configs/hrm_model1.yaml --seed 2 --fold 2 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s2_f3	--config configs/hrm_model1.yaml --seed 2 --fold 3 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_cv/s2_f4	--config configs/hrm_model1.yaml --seed 2 --fold 4 --set protocol=cv val_labels=single pred_pool=true
+exp/rep/hrm_model1_lrssl2e-5/s0	--config configs/hrm_model1.yaml --seed 0 --set lr_ssl=2e-5
+exp/rep/hrm_model1_lrssl2e-5/s1	--config configs/hrm_model1.yaml --seed 1 --set lr_ssl=2e-5
+exp/rep/hrm_model1_lrssl2e-5/s2	--config configs/hrm_model1.yaml --seed 2 --set lr_ssl=2e-5
+exp/rep/hrm_model2_lrssl2e-5/s0	--config configs/hrm_model2.yaml --seed 0 --set lr_ssl=2e-5
+exp/rep/hrm_model2_lrssl2e-5/s1	--config configs/hrm_model2.yaml --seed 1 --set lr_ssl=2e-5
+exp/rep/hrm_model2_lrssl2e-5/s2	--config configs/hrm_model2.yaml --seed 2 --set lr_ssl=2e-5
+exp/rep/hrm_model3_lrssl2e-5/s0	--config configs/hrm_model3.yaml --seed 0 --set lr_ssl=2e-5
+exp/rep/hrm_model3_lrssl2e-5/s1	--config configs/hrm_model3.yaml --seed 1 --set lr_ssl=2e-5
+exp/rep/hrm_model3_lrssl2e-5/s2	--config configs/hrm_model3.yaml --seed 2 --set lr_ssl=2e-5

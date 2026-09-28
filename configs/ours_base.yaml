@@ -1,0 +1,25 @@
+# Ours, base: SSL on 16 kHz audio + sampling-rate and listening-test embeddings + multi-scale
+# CNN on the 0-24 kHz mel spectrogram (bandwidth-aware), trained on train+dev labels with the
+# listening test (single-rate vs mixed) as an input. Predicts the mixed-test score at inference.
+# Selection: sentence-grouped 5-fold CV, validated on held-out dev (mixed-test) labels.
+backbone: facebook/wav2vec2-base
+input_mode: resample16k
+sr_emb: 16
+test_emb: 16
+mel: true
+head: frame
+labels: both
+protocol: cv
+k_folds: 5
+loss: {l2: 1.0, contrastive: 0.5}
+loss_params: {tau: 0.25, margin: 0.1}
+optimizer: adamw
+lr: 1.0e-3
+lr_ssl: 3.0e-5
+weight_decay: 0.01
+warmup_steps: 100
+batch_size: 16
+select: utt_LCC
+eval_every: 50
+patience: 30
+max_steps: 6000

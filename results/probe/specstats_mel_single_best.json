@@ -1,0 +1,14 @@
+{
+ "feats": "data/feats/specstats_mel.pt",
+ "labels": "single",
+ "best_layer": 0,
+ "alpha": 100,
+ "oof_utt_MSE": 0.34071135130348795,
+ "oof_utt_LCC": 0.69071956072114,
+ "oof_utt_SRCC": 0.6152904319261027,
+ "oof_utt_KTAU": 0.44171834106193,
+ "oof_sys_MSE": 0.06228853805935608,
+ "oof_sys_LCC": 0.9496632261076307,
+ "oof_sys_SRCC": 0.7789473684210525,
+ "oof_sys_KTAU": 0.5473684210526316
+}

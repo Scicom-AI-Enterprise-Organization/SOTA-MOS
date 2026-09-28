@@ -1,0 +1,85 @@
+exp/cv/ours_base/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0
+exp/cv/ours_base/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1
+exp/cv/ours_base/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2
+exp/cv/ours_base/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3
+exp/cv/ours_base/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4
+exp/cv/ours_labels_mix/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set labels=mix test_emb=0
+exp/cv/ours_labels_mix/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set labels=mix test_emb=0
+exp/cv/ours_labels_mix/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set labels=mix test_emb=0
+exp/cv/ours_labels_mix/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set labels=mix test_emb=0
+exp/cv/ours_labels_mix/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set labels=mix test_emb=0
+exp/cv/ours_labels_single/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set labels=single test_emb=0
+exp/cv/ours_labels_single/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set labels=single test_emb=0
+exp/cv/ours_labels_single/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set labels=single test_emb=0
+exp/cv/ours_labels_single/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set labels=single test_emb=0
+exp/cv/ours_labels_single/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set labels=single test_emb=0
+exp/cv/ours_native/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set input_mode=native
+exp/cv/ours_native/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set input_mode=native
+exp/cv/ours_native/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set input_mode=native
+exp/cv/ours_native/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set input_mode=native
+exp/cv/ours_native/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set input_mode=native
+exp/cv/ours_nomel/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set mel=false
+exp/cv/ours_nomel/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set mel=false
+exp/cv/ours_nomel/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set mel=false
+exp/cv/ours_nomel/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set mel=false
+exp/cv/ours_nomel/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set mel=false
+exp/cv/ours_nosr/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set sr_emb=0
+exp/cv/ours_nosr/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set sr_emb=0
+exp/cv/ours_nosr/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set sr_emb=0
+exp/cv/ours_nosr/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set sr_emb=0
+exp/cv/ours_nosr/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set sr_emb=0
+exp/cv/ours_pool/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set head=pool
+exp/cv/ours_pool/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set head=pool
+exp/cv/ours_pool/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set head=pool
+exp/cv/ours_pool/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set head=pool
+exp/cv/ours_pool/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set head=pool
+exp/cv/ours_weighted/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set layer=weighted
+exp/cv/ours_weighted/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set layer=weighted
+exp/cv/ours_weighted/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set layer=weighted
+exp/cv/ours_weighted/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set layer=weighted
+exp/cv/ours_weighted/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set layer=weighted
+exp/cv/ours_blstm/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set blstm=true
+exp/cv/ours_blstm/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set blstm=true
+exp/cv/ours_blstm/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set blstm=true
+exp/cv/ours_blstm/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set blstm=true
+exp/cv/ours_blstm/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set blstm=true
+exp/cv/ours_balance/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set balance=condition
+exp/cv/ours_balance/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set balance=condition
+exp/cv/ours_balance/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set balance=condition
+exp/cv/ours_balance/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set balance=condition
+exp/cv/ours_balance/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set balance=condition
+exp/cv/ours_loss_hrm/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set loss.l2=0 loss.l1=1.0 loss.contrastive=1.0 loss.lcc=1.0 loss_params.tau=0.0
+exp/cv/ours_loss_hrm/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set loss.l2=0 loss.l1=1.0 loss.contrastive=1.0 loss.lcc=1.0 loss_params.tau=0.0
+exp/cv/ours_loss_hrm/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set loss.l2=0 loss.l1=1.0 loss.contrastive=1.0 loss.lcc=1.0 loss_params.tau=0.0
+exp/cv/ours_loss_hrm/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set loss.l2=0 loss.l1=1.0 loss.contrastive=1.0 loss.lcc=1.0 loss_params.tau=0.0
+exp/cv/ours_loss_hrm/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set loss.l2=0 loss.l1=1.0 loss.contrastive=1.0 loss.lcc=1.0 loss_params.tau=0.0
+exp/cv/ours_wavlm_base/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set backbone=microsoft/wavlm-base-plus
+exp/cv/ours_wavlm_base/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set backbone=microsoft/wavlm-base-plus
+exp/cv/ours_wavlm_base/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set backbone=microsoft/wavlm-base-plus
+exp/cv/ours_wavlm_base/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set backbone=microsoft/wavlm-base-plus
+exp/cv/ours_wavlm_base/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set backbone=microsoft/wavlm-base-plus
+exp/cv/ours_w2v2_large/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set backbone=facebook/wav2vec2-large-lv60
+exp/cv/ours_w2v2_large/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set backbone=facebook/wav2vec2-large-lv60
+exp/cv/ours_w2v2_large/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set backbone=facebook/wav2vec2-large-lv60
+exp/cv/ours_w2v2_large/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set backbone=facebook/wav2vec2-large-lv60
+exp/cv/ours_w2v2_large/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set backbone=facebook/wav2vec2-large-lv60
+exp/cv/ours_wavlm_large/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set backbone=microsoft/wavlm-large
+exp/cv/ours_wavlm_large/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set backbone=microsoft/wavlm-large
+exp/cv/ours_wavlm_large/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set backbone=microsoft/wavlm-large
+exp/cv/ours_wavlm_large/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set backbone=microsoft/wavlm-large
+exp/cv/ours_wavlm_large/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set backbone=microsoft/wavlm-large
+exp/cv/ours_d2v_large/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set backbone=facebook/data2vec-audio-large
+exp/cv/ours_d2v_large/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set backbone=facebook/data2vec-audio-large
+exp/cv/ours_d2v_large/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set backbone=facebook/data2vec-audio-large
+exp/cv/ours_d2v_large/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set backbone=facebook/data2vec-audio-large
+exp/cv/ours_d2v_large/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set backbone=facebook/data2vec-audio-large
+exp/cv/ours_xlsr300m/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set backbone=facebook/wav2vec2-xls-r-300m
+exp/cv/ours_xlsr300m/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set backbone=facebook/wav2vec2-xls-r-300m
+exp/cv/ours_xlsr300m/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set backbone=facebook/wav2vec2-xls-r-300m
+exp/cv/ours_xlsr300m/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set backbone=facebook/wav2vec2-xls-r-300m
+exp/cv/ours_xlsr300m/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set backbone=facebook/wav2vec2-xls-r-300m
+exp/cv/ours_hubert_large/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set backbone=facebook/hubert-large-ll60k
+exp/cv/ours_hubert_large/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set backbone=facebook/hubert-large-ll60k
+exp/cv/ours_hubert_large/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set backbone=facebook/hubert-large-ll60k
+exp/cv/ours_hubert_large/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set backbone=facebook/hubert-large-ll60k
+exp/cv/ours_hubert_large/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set backbone=facebook/hubert-large-ll60k
