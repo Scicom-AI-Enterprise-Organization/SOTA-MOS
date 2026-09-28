@@ -23,19 +23,28 @@ sys.path.insert(0, str(ROOT))
 from sotamos.data import SR_INDEX, TEST_INDEX, collate  # noqa: E402
 from sotamos.features import normalise, raw_features  # noqa: E402
 from sotamos.model import MOSModel, SSLBackbone  # noqa: E402
-from sotamos.predict import nearest_rate  # noqa: E402
+from sotamos.predict import load_weights, nearest_rate  # noqa: E402
 from sotamos.probes import predict_fold  # noqa: E402
 
 
+SYSTEM_DIR = [None]  # directory of the loaded system.json
+
+
 def _repo_path(p):
-    """system.json stores paths relative to the repository root."""
+    """Member paths are relative to the system.json directory (Hugging Face layout) or to the repo root."""
     p = Path(p)
-    return p if p.is_absolute() else ROOT / p
+    if p.is_absolute():
+        return p
+    if SYSTEM_DIR[0] is not None and (SYSTEM_DIR[0] / p).exists():
+        return SYSTEM_DIR[0] / p
+    return ROOT / p
 
 
 class Engine:
     def __init__(self, system_path, device="cuda", dtype=torch.bfloat16):
-        spec = json.load(open(_repo_path(system_path) if not Path(system_path).exists() else system_path))
+        system_path = Path(system_path) if Path(system_path).exists() else ROOT / system_path
+        SYSTEM_DIR[0] = system_path.resolve().parent
+        spec = json.load(open(system_path))
         self.device = torch.device(device)
         self.dtype = dtype
         self.members = spec["members"]
@@ -61,7 +70,7 @@ class Engine:
                 for run in m["runs"]:
                     ck = torch.load(_repo_path(run) / "model.pt", map_location="cpu", weights_only=False)
                     model = MOSModel(ck["cfg"])
-                    model.load_state_dict(ck["state_dict"])
+                    load_weights(model, ck)
                     folds.append((model.eval().to(self.device), ck["cfg"], ck["spec_stats"]))
                 self.ft.append((m, folds))
 

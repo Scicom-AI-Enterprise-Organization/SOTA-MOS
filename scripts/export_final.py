@@ -47,12 +47,18 @@ def main():
 
     ap = argparse.ArgumentParser()
     ap.add_argument("group", nargs="?", help="both | single: export results/final/<group>/result.json")
+    ap.add_argument("--result", help="export this result.json instead (e.g. results/final_interim/both/result.json)")
     ap.add_argument("--members", help="comma-separated member names, weight 1 each (test systems)")
     ap.add_argument("--out-dir", help="where a --members system goes")
     args = ap.parse_args()
     if args.members:
         group, res = Path(args.out_dir).name, {"members": {m: 1 for m in args.members.split(",")}, "oof": None, "eval": None}
         out_dir, sys_path = Path(args.out_dir), Path(args.out_dir) / "system.json"
+    elif args.result:
+        group = Path(args.result).parent.name
+        res = json.load(open(args.result))
+        tag = Path(args.result).parent.parent.name  # final_interim
+        out_dir, sys_path = Path(f"exp/{tag}/{group}"), Path(args.result).parent / "system.json"
     else:
         group = args.group
         res = json.load(open(f"results/final/{group}/result.json"))

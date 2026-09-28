@@ -2,6 +2,7 @@
 
   uv run python scripts/final.py              # select + score eval once, at the very end
   uv run python scripts/final.py --no-eval    # progress check: out-of-fold only
+  uv run python scripts/final.py --interim    # select from finished, exportable candidates; no eval
 
 Candidates are anything with out-of-fold predictions on the 400 dev clips plus eval predictions:
   - CV systems under exp/cv/ (5 folds, seeds averaged)
@@ -28,11 +29,13 @@ from sotamos.report import POOL, TEST, system_predictions  # noqa: E402
 OUT = Path("results/final")
 
 
-def candidates():
+def candidates(exportable_only=False):
     cands = {"both": {}, "single": {}}
     for d in sorted(Path("exp/cv").iterdir()):
         preds = system_predictions(d)
         if not preds:
+            continue
+        if exportable_only and len(list(d.glob("s*_f*/model.pt"))) < 5:
             continue
         cfg_labels = next(iter(preds.values()))["folds"][0]["cfg"]["labels"]
         group = "single" if cfg_labels == "single" else "both"
@@ -55,12 +58,14 @@ def candidates():
 
 
 def main():
-    no_eval = "--no-eval" in sys.argv  # progress checks: out-of-fold only, nothing touches eval labels
-    OUT.mkdir(parents=True, exist_ok=True)
+    interim = "--interim" in sys.argv  # select from what exists now; eval stays untouched
+    no_eval = "--no-eval" in sys.argv or interim  # progress checks: out-of-fold only
+    out_root = Path("results/final_interim") if interim else OUT
+    out_root.mkdir(parents=True, exist_ok=True)
     y, cond = POOL.mos_mix, POOL.condition
     summary = {}
     for group, label in [("both", "train+dev"), ("single", "train-only")]:
-        c = candidates()[group]
+        c = candidates(exportable_only=interim)[group]
         oof = {n: v[0].reindex(POOL.index).values for n, v in c.items()}
         test = {n: v[1].reindex(TEST.index) for n, v in c.items()}
         print(f"\n=== {label}: {len(c)} candidates")
@@ -71,6 +76,13 @@ def main():
         o = pd.Series(blend(oof, weights), index=POOL.index)
         print(f"members {dict(weights)}")
         print(f"OOF  {json.dumps({k: round(v, 3) for k, v in evaluate(o.values, y.values, cond.values).items()})}")
+        if interim:
+            d = out_root / group
+            d.mkdir(parents=True, exist_ok=True)
+            o.rename("pred").to_csv(d / "oof.csv")
+            json.dump({"label": label, "members": dict(weights), "trace": trace, "n_candidates": len(c),
+                       "oof": evaluate(o.values, y.values, cond.values), "eval": None},
+                      open(d / "result.json", "w"), indent=1)
         if no_eval:
             continue
         e = blend(test, weights)

@@ -33,10 +33,17 @@ from sotamos.probes import layer_features, pooled_hidden_states, predict_fold
 ROOT = Path(__file__).resolve().parents[1]
 
 
+SYSTEM_DIR = [None]  # directory of the loaded system.json
+
+
 def _repo_path(p):
-    """system.json stores paths relative to the repository root."""
+    """Member paths are relative to the system.json directory (Hugging Face layout) or to the repo root."""
     p = Path(p)
-    return p if p.is_absolute() else ROOT / p
+    if p.is_absolute():
+        return p
+    if SYSTEM_DIR[0] is not None and (SYSTEM_DIR[0] / p).exists():
+        return SYSTEM_DIR[0] / p
+    return ROOT / p
 
 
 def load_audio(path):
@@ -49,12 +56,19 @@ def nearest_rate(sr):
     return nearest_trained_rate(sr)  # clips are already converted by to_model_rates; this is a guard
 
 
+def load_weights(model, ckpt):
+    """Frozen-SSL checkpoints ship without the SSL weights (MOSModel loads them pretrained)."""
+    frozen = ckpt.get("ssl_from_pretrained", False)
+    missing, unexpected = model.load_state_dict(ckpt["state_dict"], strict=not frozen)
+    assert not unexpected and all(k.startswith("ssl.model.") for k in missing), (missing[:3], unexpected[:3])
+
+
 class Predictor:
     def __init__(self, run_dir, device):
         ckpt = torch.load(_repo_path(run_dir) / "model.pt", map_location="cpu", weights_only=False)
         self.cfg, self.stats = ckpt["cfg"], ckpt["spec_stats"]
         self.model = MOSModel(self.cfg)
-        self.model.load_state_dict(ckpt["state_dict"])
+        load_weights(self.model, ckpt)
         self.model.eval().to(device)
         self.device = device
 
@@ -80,6 +94,7 @@ class SystemScorer:
 
     def __init__(self, system_path, device):
         self.device, self.members, self.ssl = device, [], {}
+        SYSTEM_DIR[0] = Path(system_path).resolve().parent
         for m in json.load(open(system_path))["members"]:
             if m["type"] == "finetuned":
                 self.members.append((m["weight"], m, [Predictor(r, device) for r in m["runs"]]))
