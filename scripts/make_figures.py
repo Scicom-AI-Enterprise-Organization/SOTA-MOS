@@ -136,16 +136,18 @@ def replication():
             seeds = [r[f"eval_{metric}"] for r in rows[k]["per_seed"]]
             ens = rows[k]["eval_ens"][metric]
             col = ps.SERIES[1] if k.startswith("HighRateMOS") else ps.SERIES[0]
-            ax.scatter(seeds, [i] * len(seeds), s=30, color=col, edgecolor=ps.SURFACE, zorder=3,
-                       label="single seed" if i == 0 else None)
-            ax.scatter([ens], [i], s=90, marker="|", color=ps.INK, linewidth=2, zorder=4,
-                       label="seeds averaged" if i == 0 else None)
-        ax.axvline(paper, color=ps.SERIES[7], lw=1.2, ls="--", label=f"paper (T17): {paper}")
+            ax.scatter(seeds, [i] * len(seeds), s=30, color=col, edgecolor=ps.SURFACE, zorder=3)
+            ax.scatter([ens], [i], s=90, marker="|", color=ps.INK, linewidth=2, zorder=4)
+        ax.axvline(paper, color=ps.SERIES[7], lw=1.2, ls="--")
+        ax.text(paper, len(order) - 0.45, f" paper {paper}", color=ps.INK2, fontsize=8, va="bottom")
         ax.set_xlabel(f"eval {metric.replace('_', ' ')}")
         ax.grid(axis="y", visible=False)
     axes[0].set_yticks(range(len(order)))
     axes[0].set_yticklabels([lab for _, lab in order[::-1]], fontsize=8.5)
-    axes[0].legend(loc="lower left", fontsize=7.5)
+    handles = [plt.Line2D([], [], marker="o", ls="", color=ps.SERIES[0], label="one training seed"),
+               plt.Line2D([], [], marker="|", ls="", color=ps.INK, markersize=10, mew=2, label="seeds averaged"),
+               plt.Line2D([], [], color=ps.SERIES[7], ls="--", label="HighRateMOS paper (T17)")]
+    axes[0].legend(handles=handles, loc="lower left", fontsize=7.5)
     fig.suptitle("HighRateMOS replication on eval: one dot per training seed", fontsize=11, fontweight="bold",
                  color=ps.INK)
     ps.save(fig, FIG / "replication_seeds.png")

@@ -1,0 +1,16 @@
+{
+ "feats": "data/feats/wavlm-large_resample16k.pt",
+ "labels": "both",
+ "layer": 6,
+ "layers": 3,
+ "alpha": 0.1,
+ "gamma_scale": 0.25,
+ "oof_utt_MSE": 0.1500039597521603,
+ "oof_utt_LCC": 0.8716368710171015,
+ "oof_utt_SRCC": 0.8232295177875186,
+ "oof_utt_KTAU": 0.6406461486988075,
+ "oof_sys_MSE": 0.008855276055114426,
+ "oof_sys_LCC": 0.9911733935688585,
+ "oof_sys_SRCC": 0.9503759398496241,
+ "oof_sys_KTAU": 0.8526315789473685
+}

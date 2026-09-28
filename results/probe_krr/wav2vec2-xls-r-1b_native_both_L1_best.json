@@ -1,0 +1,16 @@
+{
+ "feats": "data/feats/wav2vec2-xls-r-1b_native.pt",
+ "labels": "both",
+ "layer": 11,
+ "layers": 1,
+ "alpha": 0.03,
+ "gamma_scale": 0.25,
+ "oof_utt_MSE": 0.1524939699794498,
+ "oof_utt_LCC": 0.8703795423777615,
+ "oof_utt_SRCC": 0.8259439209634867,
+ "oof_utt_KTAU": 0.6428942091934838,
+ "oof_sys_MSE": 0.013288118301749214,
+ "oof_sys_LCC": 0.9905246267134932,
+ "oof_sys_SRCC": 0.9488721804511278,
+ "oof_sys_KTAU": 0.8631578947368421
+}

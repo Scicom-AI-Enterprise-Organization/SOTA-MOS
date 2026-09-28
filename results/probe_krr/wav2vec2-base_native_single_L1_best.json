@@ -1,0 +1,16 @@
+{
+ "feats": "data/feats/wav2vec2-base_native.pt",
+ "labels": "single",
+ "layer": 2,
+ "layers": 1,
+ "alpha": 0.03,
+ "gamma_scale": 1.0,
+ "oof_utt_MSE": 0.23412009248122645,
+ "oof_utt_LCC": 0.827896756763648,
+ "oof_utt_SRCC": 0.7693221613719735,
+ "oof_utt_KTAU": 0.5800251537684992,
+ "oof_sys_MSE": 0.064164025161512,
+ "oof_sys_LCC": 0.9713101393959336,
+ "oof_sys_SRCC": 0.8691729323308269,
+ "oof_sys_KTAU": 0.6947368421052632
+}

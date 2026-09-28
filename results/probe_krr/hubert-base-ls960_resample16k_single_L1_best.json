@@ -1,0 +1,16 @@
+{
+ "feats": "data/feats/hubert-base-ls960_resample16k.pt",
+ "labels": "single",
+ "layer": 2,
+ "layers": 1,
+ "alpha": 0.1,
+ "gamma_scale": 0.25,
+ "oof_utt_MSE": 0.26812498279859026,
+ "oof_utt_LCC": 0.8422007271167926,
+ "oof_utt_SRCC": 0.7836347590766329,
+ "oof_utt_KTAU": 0.5874590810861224,
+ "oof_sys_MSE": 0.11081811572149528,
+ "oof_sys_LCC": 0.9754834973904163,
+ "oof_sys_SRCC": 0.8466165413533834,
+ "oof_sys_KTAU": 0.6842105263157895
+}

@@ -141,7 +141,33 @@ Every run writes its dev (or out-of-fold) and eval predictions. Selection only r
 
 ## Results
 
-Running. Tables and figures land here as runs finish.
+### Replication: HighRateMOS reproduces, with a wide seed spread
+
+![Replication seeds](results/figures/replication_seeds.png)
+
+**Our HighRateMOS ensemble scores eval sys SRCC 0.959 and KTAU 0.842. The paper reports 0.955 and 0.842.**
+That is three training seeds averaged. One seed of the 3-model ensemble, as in the paper, gives 0.959, 0.922 and 0.934.
+
+All rows train on train labels only and select checkpoints on dev labels, as the paper does.
+
+| eval | utt MSE | utt LCC | utt SRCC | utt KTAU | sys MSE | sys LCC | sys SRCC | sys KTAU | sys SRCC per seed |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| HighRateMOS, paper (T17) | 0.303 | 0.847 | 0.742 | 0.556 | 0.116 | 0.982 | 0.955 | 0.842 | – |
+| HighRateMOS ensemble, ours, seed 0 | 0.259 | 0.846 | 0.712 | 0.515 | 0.150 | 0.958 | 0.959 | 0.853 | – |
+| HighRateMOS ensemble, ours, 3 seeds | 0.264 | 0.838 | 0.686 | 0.492 | 0.130 | 0.960 | 0.959 | 0.842 | 0.959 / 0.922 / 0.934 |
+| Model 1 | 0.294 | 0.800 | 0.666 | 0.478 | 0.073 | 0.976 | 0.953 | 0.842 | 0.923 / 0.952 / 0.911 |
+| Model 2 | 0.267 | 0.825 | 0.634 | 0.449 | 0.136 | 0.935 | 0.773 | 0.611 | 0.638 / 0.904 / 0.797 |
+| Model 3 | 0.387 | 0.761 | 0.582 | 0.392 | 0.216 | 0.948 | 0.889 | 0.695 | 0.800 / 0.872 / 0.692 |
+| Model 1, selected on train labels | 0.286 | 0.805 | 0.669 | 0.474 | 0.095 | 0.959 | 0.842 | 0.663 | 0.931 / 0.725 / 0.798 |
+| SSL-MOS, 16 kHz | 0.283 | 0.812 | 0.670 | 0.478 | 0.067 | 0.964 | 0.893 | 0.758 | 0.773 / 0.908 / 0.893 |
+| faster-UTMOSv2, off the shelf | 0.328 | 0.785 | 0.753 | 0.576 | 0.153 | 0.952 | 0.893 | 0.758 | 5 pretrained folds |
+
+- **Single models are unstable.** Model 2 seed 0 scores sys SRCC 0.638 on eval after 0.946 on dev.
+  Model 3 seed 2 drops to utt LCC 0.436. Averaging models is what makes the paper's number reachable.
+- **Dev-label selection carries the system ranking.** Model 1 selected on held-out train labels, as in the challenge's training phase, gets sys SRCC 0.842.
+  Selected on dev labels, it gets 0.953. The train labels hold no preference for high rates. The checkpoint chosen on dev labels picks one up.
+- **The utterance level is where the paper is weakest.** Its utt SRCC of 0.742 sits below the dev-condition reference (0.819). Our replication's 0.686 sits lower still.
+- **faster-UTMOSv2 off the shelf matches SSL-MOS on sys SRCC (0.893) and beats HighRateMOS on utt SRCC (0.753).** It sees only 16 kHz audio and has never seen Track 3.
 
 ### Frozen SSL features: the quality signal sits in early layers
 

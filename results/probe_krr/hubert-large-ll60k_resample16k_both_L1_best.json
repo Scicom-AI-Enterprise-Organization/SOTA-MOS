@@ -1,0 +1,16 @@
+{
+ "feats": "data/feats/hubert-large-ll60k_resample16k.pt",
+ "labels": "both",
+ "layer": 4,
+ "layers": 1,
+ "alpha": 0.1,
+ "gamma_scale": 0.25,
+ "oof_utt_MSE": 0.1513812413680982,
+ "oof_utt_LCC": 0.8707004722480367,
+ "oof_utt_SRCC": 0.8282584737649542,
+ "oof_utt_KTAU": 0.6442226085767018,
+ "oof_sys_MSE": 0.010488768655837916,
+ "oof_sys_LCC": 0.9911065456151402,
+ "oof_sys_SRCC": 0.9714285714285714,
+ "oof_sys_KTAU": 0.8842105263157894
+}

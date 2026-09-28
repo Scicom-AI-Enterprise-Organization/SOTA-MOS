@@ -1,0 +1,16 @@
+{
+ "feats": "data/feats/wav2vec2-large-lv60_native.pt",
+ "labels": "single",
+ "layer": 2,
+ "layers": 1,
+ "alpha": 0.03,
+ "gamma_scale": 0.5,
+ "oof_utt_MSE": 0.26669716622712214,
+ "oof_utt_LCC": 0.8328746089277254,
+ "oof_utt_SRCC": 0.7809969289834138,
+ "oof_utt_KTAU": 0.587714542505972,
+ "oof_sys_MSE": 0.07798170023410322,
+ "oof_sys_LCC": 0.9637373163921397,
+ "oof_sys_SRCC": 0.8210526315789473,
+ "oof_sys_KTAU": 0.6526315789473685
+}
