@@ -15,6 +15,27 @@ SR_INDEX = {16000: 0, 24000: 1, 48000: 2}
 TEST_INDEX = {"single": 0, "mix": 1}
 
 
+RATES = (16000, 24000, 48000)
+_RESAMPLE = dict(lowpass_filter_width=64, rolloff=0.9475937167399596, resampling_method="sinc_interp_kaiser",
+                 beta=14.769656459379492)
+
+
+def resample(x: torch.Tensor, sr: int, target: int) -> torch.Tensor:
+    return x if sr == target else AF.resample(x, sr, target, **_RESAMPLE)
+
+
+def to_model_rates(x: torch.Tensor, sr: int):
+    """Waveform at any rate -> (waveform at a trained rate, that rate, 16 kHz copy).
+
+    Rates the model was trained on (16 / 24 / 48 kHz) pass through. Any other rate is resampled up
+    to the next trained rate, so no bandwidth is thrown away (44.1 -> 48 kHz, 22.05 -> 24 kHz,
+    32 -> 48 kHz, 8 -> 16 kHz); rates above 48 kHz go down to 48 kHz. The 16 kHz copy is made
+    from the original signal.
+    """
+    target = next((r for r in RATES if r >= sr), RATES[-1])
+    return resample(x, sr, target), target, resample(x, sr, 16000)
+
+
 def load_clips(path="data/clips.csv") -> pd.DataFrame:
     return pd.read_csv(path)
 
@@ -38,9 +59,7 @@ class AudioCache:
                 x = x.mean(1)
             x = torch.from_numpy(np.ascontiguousarray(x))
             self.native[r.clip] = x
-            self.r16[r.clip] = x if sr == 16000 else AF.resample(
-                x, sr, 16000, lowpass_filter_width=64, rolloff=0.9475937167399596,
-                resampling_method="sinc_interp_kaiser", beta=14.769656459379492)
+            self.r16[r.clip] = resample(x, sr, 16000)
         if cache_path:
             os.makedirs(os.path.dirname(cache_path), exist_ok=True)
             tmp = f"{cache_path}.tmp{os.getpid()}"

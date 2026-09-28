@@ -10,8 +10,9 @@ their fold checkpoints; probe members average their fold models on frozen SSL fe
 Each run directory needs model.pt (train with `save_ckpt: true`). Every file is read at its own
 sampling rate. The SSL branch gets the waveform (resampled to 16 kHz, or the native samples for
 `input_mode: native`). The mel branch reads the native-rate spectrum on the common 0-24 kHz axis.
-The sampling-rate embedding takes the nearest of 16 / 24 / 48 kHz on a log scale, so 22.05 kHz
-maps to 24 kHz and 44.1 kHz to 48 kHz. Scores are mixed-rate listening-test MOS.
+Rates the model was not trained on are resampled up to the next trained rate (44.1 -> 48 kHz,
+22.05 -> 24 kHz, 32 -> 48 kHz, 8 -> 16 kHz; above 48 kHz -> 48 kHz), so no bandwidth is lost and the
+native-rate members see the time scale they were trained on. Scores are mixed-rate listening-test MOS.
 """
 
 import argparse
@@ -23,20 +24,26 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 import torch
-import torchaudio.functional as AF
 
-from sotamos.data import SR_INDEX, TEST_INDEX
+from sotamos.data import SR_INDEX, TEST_INDEX, to_model_rates
 from sotamos.features import normalise, raw_features
 from sotamos.model import MOSModel, SSLBackbone
 from sotamos.probes import layer_features, pooled_hidden_states, predict_fold
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _repo_path(p):
+    """system.json stores paths relative to the repository root."""
+    p = Path(p)
+    return p if p.is_absolute() else ROOT / p
+
+
 def load_audio(path):
+    """(waveform at a trained rate, that rate, 16 kHz copy); see sotamos.data.to_model_rates."""
     x, sr = sf.read(path, dtype="float32", always_2d=True)
-    x = torch.from_numpy(np.ascontiguousarray(x.mean(1)))
-    r16 = x if sr == 16000 else AF.resample(x, sr, 16000, lowpass_filter_width=64, rolloff=0.9475937167399596,
-                                            resampling_method="sinc_interp_kaiser", beta=14.769656459379492)
-    return x, sr, r16
+    return to_model_rates(torch.from_numpy(np.ascontiguousarray(x.mean(1))), sr)
 
 
 def nearest_rate(sr):
@@ -45,7 +52,7 @@ def nearest_rate(sr):
 
 class Predictor:
     def __init__(self, run_dir, device):
-        ckpt = torch.load(Path(run_dir) / "model.pt", map_location="cpu", weights_only=False)
+        ckpt = torch.load(_repo_path(run_dir) / "model.pt", map_location="cpu", weights_only=False)
         self.cfg, self.stats = ckpt["cfg"], ckpt["spec_stats"]
         self.model = MOSModel(self.cfg)
         self.model.load_state_dict(ckpt["state_dict"])
@@ -80,7 +87,7 @@ class SystemScorer:
             else:
                 if m["backbone"] not in self.ssl:
                     self.ssl[m["backbone"]] = SSLBackbone(m["backbone"], layer="weighted").to(device).eval()
-                self.members.append((m["weight"], m, torch.load(m["path"], weights_only=False)["states"]))
+                self.members.append((m["weight"], m, torch.load(_repo_path(m["path"]), weights_only=False)["states"]))
 
     def __call__(self, x, sr, r16):
         feats, total, wsum = {}, 0.0, 0.0

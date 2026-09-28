@@ -31,7 +31,10 @@ def layer_features(F, layer, window=1):
 
 
 def fit_member(spec, F_pool, pool, clips, k=5):
-    """spec: dict(kind, labels, alpha, [gamma_scale], [w_onehot]). Returns list of fold states."""
+    """spec: dict(kind, labels, alpha, [gamma_scale], [w_onehot]). Returns list of fold states.
+    Ridge runs in float32 and kernel ridge in float64, as scripts/probe.py and probe_krr.py did."""
+    dt = np.float32 if spec["kind"] == "ridge" else np.float64
+    F_pool = F_pool.astype(dt)
     sr = pool.sr.map(SR_INDEX).values
     folds = pool.sentence.map(sentence_folds(clips, k, 0)).values
     states = []
@@ -44,7 +47,7 @@ def fit_member(spec, F_pool, pool, clips, k=5):
             Xs.append(X); ys.append(pool.mos_single.values[tr]); os_.append(design_onehot(sr[tr], np.zeros(tr.sum(), int)))
         if spec["labels"] in ("mix", "both"):
             Xs.append(X); ys.append(pool.mos_mix.values[tr]); os_.append(design_onehot(sr[tr], np.ones(tr.sum(), int)))
-        X, y, O = np.concatenate(Xs), np.concatenate(ys), np.concatenate(os_)
+        X, y, O = np.concatenate(Xs), np.concatenate(ys), np.concatenate(os_).astype(dt)
         st = {"mu": mu, "sd": sd, "fold": f}
         if spec["kind"] == "ridge":
             w = spec.get("w_onehot", 3.0)
@@ -62,9 +65,10 @@ def fit_member(spec, F_pool, pool, clips, k=5):
 
 
 def predict_fold(st, kind, F, sr_idx, test_name="mix"):
+    dt = np.float32 if kind == "ridge" else np.float64
     t = np.full(len(F), 1 if test_name == "mix" else 0)
-    O = design_onehot(sr_idx, t)
-    X = (F - st["mu"]) / st["sd"]
+    O = design_onehot(sr_idx, t).astype(dt)
+    X = (F.astype(dt) - st["mu"]) / st["sd"]
     if kind == "ridge":
         return np.concatenate([X, st["w_onehot"] * O], 1) @ st["coef"] + st["intercept"]
     return rbf_plus_linear(X, st["X"], O, st["O"], st["gamma"]) @ st["dual"] + st["ym"]

@@ -21,6 +21,9 @@ dependencies = [
     "utmosv2 @ git+https://github.com/Scicom-AI-Enterprise-Organization/faster-UTMOSv2",
 ]
 
+[project.optional-dependencies]
+serve = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "python-multipart>=0.0.9", "httpx>=0.27"]
+
 [tool.hatch.metadata]
 allow-direct-references = true
 

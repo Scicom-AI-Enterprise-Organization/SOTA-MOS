@@ -43,10 +43,22 @@ def probe_spec(member):
 
 
 def main():
-    group = sys.argv[1]
-    res = json.load(open(f"results/final/{group}/result.json"))
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("group", nargs="?", help="both | single: export results/final/<group>/result.json")
+    ap.add_argument("--members", help="comma-separated member names, weight 1 each (test systems)")
+    ap.add_argument("--out-dir", help="where a --members system goes")
+    args = ap.parse_args()
+    if args.members:
+        group, res = Path(args.out_dir).name, {"members": {m: 1 for m in args.members.split(",")}, "oof": None, "eval": None}
+        out_dir, sys_path = Path(args.out_dir), Path(args.out_dir) / "system.json"
+    else:
+        group = args.group
+        res = json.load(open(f"results/final/{group}/result.json"))
+        out_dir, sys_path = Path(f"exp/final/{group}"), Path(f"results/final/{group}/system.json")
     clips = load_clips()
-    out_dir = Path(f"exp/final/{group}")
+    offline = []
     out_dir.mkdir(parents=True, exist_ok=True)
     members = []
     for member, weight in res["members"].items():
@@ -54,6 +66,8 @@ def main():
             runs = sorted(str(p.parent) for p in Path(f"exp/cv/{member[3:]}").glob("s*_f*/model.pt"))
             assert len(runs) >= 5, f"{member}: fold checkpoints missing ({len(runs)})"
             members.append({"name": member, "weight": weight, "type": "finetuned", "runs": runs})
+            tp = pd.concat([pd.read_csv(Path(r) / "pred_test.csv").set_index("clip")["pred"] for r in runs], axis=1)
+            offline.append((weight, tp.mean(axis=1)))
             continue
         stem, spec, prefix = probe_spec(member)
         d = torch.load(f"data/feats/{stem}.pt")
@@ -72,11 +86,15 @@ def main():
         torch.save({"spec": spec, "states": states}, path)
         members.append({"name": member, "weight": weight, "type": "probe", "backbone": HF[backbone],
                         "input_mode": mode, "path": str(path), **{k: spec[k] for k in ("kind", "layer", "window")}})
+        offline.append((weight, pd.Series(tp, index=test["clip"].values)))
         print(f"exported {member} (max refit error {err:.2e})")
     system = {"group": group, "members": members, "selection": "greedy forward selection on out-of-fold dev",
               "oof": res["oof"], "eval": res["eval"]}
-    json.dump(system, open(f"results/final/{group}/system.json", "w"), indent=1)
-    print(f"wrote results/final/{group}/system.json with {len(members)} members")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    json.dump(system, open(sys_path, "w"), indent=1)
+    blend = sum(w * p for w, p in offline) / sum(w for w, _ in offline)
+    blend.rename("pred").rename_axis("clip").to_csv(sys_path.parent / "offline_eval.csv")
+    print(f"wrote {sys_path} with {len(members)} members (+ offline_eval.csv)")
 
 
 if __name__ == "__main__":
