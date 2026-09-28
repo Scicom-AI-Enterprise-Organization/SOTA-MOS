@@ -2,6 +2,7 @@
 
   uv run python scripts/make_jobs.py phase1   # replication (train labels, dev selection)
   uv run python scripts/make_jobs.py phase2   # ours: CV ablations
+  uv run python scripts/make_jobs.py utmos    # faster-UTMOSv2: zero-shot and fine-tuned
 """
 
 import sys
@@ -61,9 +62,23 @@ def phase2():
     return jobs
 
 
+def utmos():
+    u = "-m sotamos.utmos"
+    jobs = [(f"exp/utmosv2/zeroshot/s{f}", f"{u} zeroshot --fold {f}") for f in FOLDS]
+    for dom in ["test", "test_sr"]:
+        tag = dom.replace("_", "")
+        jobs += [(f"exp/utmosv2/ft_single_{tag}/s{s}",
+                  f"{u} finetune --protocol dev --labels single --domains {dom} --seed {s} --select sys_SRCC")
+                 for s in SEEDS]
+        jobs += [(f"exp/utmosv2/ft_both_{tag}/s0_f{f}",
+                  f"{u} finetune --protocol cv --labels both --domains {dom} --seed 0 --fold {f}")
+                 for f in FOLDS]
+    return jobs
+
+
 if __name__ == "__main__":
     phase = sys.argv[1]
-    jobs = {"phase1": phase1, "phase2": phase2}[phase]()
+    jobs = {"phase1": phase1, "phase2": phase2, "utmos": utmos}[phase]()
     Path("jobs").mkdir(exist_ok=True)
     with open(f"jobs/{phase}.txt", "w") as f:
         for out, args in jobs:

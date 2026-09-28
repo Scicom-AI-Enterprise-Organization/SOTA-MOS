@@ -3,7 +3,8 @@
   uv run python scripts/run_queue.py jobs/phase1.txt --gpus 0,1,2,3,4,5,6,7 --per-gpu 2
 
 Job file: one job per line, `OUT_DIR<TAB>ARGS`, where ARGS go to
-`python -m sotamos.train --out OUT_DIR ARGS`. Lines starting with # are ignored.
+`python -m sotamos.train --out OUT_DIR ARGS`. ARGS starting with `-m MODULE` run that module
+instead (e.g. `-m sotamos.utmos finetune ...`). Lines starting with # are ignored.
 A job whose OUT_DIR/done exists is skipped, so a crashed queue can simply be re-run.
 """
 
@@ -48,7 +49,11 @@ def main():
             except queue.Empty:
                 return
             Path(out).mkdir(parents=True, exist_ok=True)
-            cmd = [sys.executable, "-m", "sotamos.train", "--out", out] + shlex.split(rest)
+            parts = shlex.split(rest)
+            module = "sotamos.train"
+            if parts[:1] == ["-m"]:
+                module, parts = parts[1], parts[2:]
+            cmd = [sys.executable, "-m", module, "--out", out] + parts
             env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(gpu), PYTHONWARNINGS="ignore")
             t0 = time.time()
             with open(Path(out) / "train.log", "a") as log:
