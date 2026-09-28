@@ -26,7 +26,7 @@ bytes ─► [process pool]   decode; any rate ─► nearest trained rate (16/2
 That rate feeds the native-rate members and the rate input. A 16 kHz copy, made from the original signal, feeds the 16 kHz members.
 
 **Variable lengths need length-aware batching.** UTMOSv2 crops every clip to a fixed 3 s window. We score the whole clip.
-The batch former sorts waiting clips by length. It cuts batches whose padded size (clips × longest clip) stays under `MAX_BATCH_SECONDS`.
+Each batch starts from the oldest waiting clip, so long clips never starve. It then adds the waiting clips closest to that length, while the padded size (clips × longest clip) stays under `MAX_BATCH_SECONDS`.
 
 **Padding must not change the score.** Large SSL models have a layer-norm conv front end, so they take padded batches with an attention mask, and pooling covers valid frames only.
 Base models normalise over time in their first conv layer, so padding would shift their statistics. Those clips run one by one.

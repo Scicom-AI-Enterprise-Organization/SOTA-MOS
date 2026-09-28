@@ -1,0 +1,62 @@
+{
+ "group": "both",
+ "members": [
+  {
+   "name": "ft:frozen_d2v_large",
+   "weight": 1,
+   "type": "finetuned",
+   "runs": [
+    "exp/cv/frozen_d2v_large/s0_f0",
+    "exp/cv/frozen_d2v_large/s0_f1",
+    "exp/cv/frozen_d2v_large/s0_f2",
+    "exp/cv/frozen_d2v_large/s0_f3",
+    "exp/cv/frozen_d2v_large/s0_f4"
+   ]
+  },
+  {
+   "name": "ft:frozen_xlsr300m",
+   "weight": 1,
+   "type": "finetuned",
+   "runs": [
+    "exp/cv/frozen_xlsr300m/s0_f0",
+    "exp/cv/frozen_xlsr300m/s0_f1",
+    "exp/cv/frozen_xlsr300m/s0_f2",
+    "exp/cv/frozen_xlsr300m/s0_f3",
+    "exp/cv/frozen_xlsr300m/s0_f4"
+   ]
+  },
+  {
+   "name": "ft:frozen_xlsr1b",
+   "weight": 1,
+   "type": "finetuned",
+   "runs": [
+    "exp/cv/frozen_xlsr1b/s0_f0",
+    "exp/cv/frozen_xlsr1b/s0_f1",
+    "exp/cv/frozen_xlsr1b/s0_f2",
+    "exp/cv/frozen_xlsr1b/s0_f3",
+    "exp/cv/frozen_xlsr1b/s0_f4"
+   ]
+  }
+ ],
+ "selection": "greedy forward selection on out-of-fold dev",
+ "oof": {
+  "utt_MSE": 0.11251741265190972,
+  "utt_LCC": 0.9053314814966841,
+  "utt_SRCC": 0.8780056719562371,
+  "utt_KTAU": 0.7057605852531887,
+  "sys_MSE": 0.008663619505328918,
+  "sys_LCC": 0.9918496297582658,
+  "sys_SRCC": 0.9789473684210527,
+  "sys_KTAU": 0.8947368421052632
+ },
+ "eval": {
+  "utt_MSE": 0.20797509155273436,
+  "utt_LCC": 0.8877103364657982,
+  "utt_SRCC": 0.8029745193218023,
+  "utt_KTAU": 0.622839606875242,
+  "sys_MSE": 0.10054354555483214,
+  "sys_LCC": 0.988849207483783,
+  "sys_SRCC": 0.9684210526315788,
+  "sys_KTAU": 0.8842105263157894
+ }
+}

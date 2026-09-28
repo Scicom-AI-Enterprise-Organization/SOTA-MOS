@@ -1,0 +1,6 @@
+file,sampling_rate,mos
+clip_16k.wav,16000,3.7021
+clip_28k.wav,24000,3.9625
+clip_44k.wav,48000,3.7948
+clip_48k.wav,48000,3.8229
+clip_48k_world.wav,48000,2.3365

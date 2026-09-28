@@ -1,0 +1,96 @@
+{
+ "group": "both",
+ "members": [
+  {
+   "name": "ft:frozen_wavlm_large",
+   "weight": 3,
+   "type": "finetuned",
+   "runs": [
+    "exp/cv/frozen_wavlm_large/s0_f0",
+    "exp/cv/frozen_wavlm_large/s0_f1",
+    "exp/cv/frozen_wavlm_large/s0_f2",
+    "exp/cv/frozen_wavlm_large/s0_f3",
+    "exp/cv/frozen_wavlm_large/s0_f4"
+   ]
+  },
+  {
+   "name": "krr:hubert-large-ll60k_native_both_L1",
+   "weight": 1,
+   "type": "probe",
+   "backbone": "facebook/hubert-large-ll60k",
+   "input_mode": "native",
+   "path": "exp/final_interim/both/krr__hubert-large-ll60k_native_both_L1.pt",
+   "kind": "krr",
+   "layer": 4,
+   "window": 1
+  },
+  {
+   "name": "krr:wav2vec2-xls-r-300m_resample16k_both_L1",
+   "weight": 1,
+   "type": "probe",
+   "backbone": "facebook/wav2vec2-xls-r-300m",
+   "input_mode": "resample16k",
+   "path": "exp/final_interim/both/krr__wav2vec2-xls-r-300m_resample16k_both_L1.pt",
+   "kind": "krr",
+   "layer": 7,
+   "window": 1
+  },
+  {
+   "name": "krr:data2vec-audio-large_native_both_L1",
+   "weight": 1,
+   "type": "probe",
+   "backbone": "facebook/data2vec-audio-large",
+   "input_mode": "native",
+   "path": "exp/final_interim/both/krr__data2vec-audio-large_native_both_L1.pt",
+   "kind": "krr",
+   "layer": 1,
+   "window": 1
+  },
+  {
+   "name": "ridge:wav2vec2-xls-r-1b_native_both",
+   "weight": 2,
+   "type": "probe",
+   "backbone": "facebook/wav2vec2-xls-r-1b",
+   "input_mode": "native",
+   "path": "exp/final_interim/both/ridge__wav2vec2-xls-r-1b_native_both.pt",
+   "kind": "ridge",
+   "layer": 11,
+   "window": 1
+  },
+  {
+   "name": "ft:ours_nosr",
+   "weight": 1,
+   "type": "finetuned",
+   "runs": [
+    "exp/cv/ours_nosr/s0_f0",
+    "exp/cv/ours_nosr/s0_f1",
+    "exp/cv/ours_nosr/s0_f2",
+    "exp/cv/ours_nosr/s0_f3",
+    "exp/cv/ours_nosr/s0_f4"
+   ]
+  },
+  {
+   "name": "krr:wavlm-large_resample16k_both_L1",
+   "weight": 1,
+   "type": "probe",
+   "backbone": "microsoft/wavlm-large",
+   "input_mode": "resample16k",
+   "path": "exp/final_interim/both/krr__wavlm-large_resample16k_both_L1.pt",
+   "kind": "krr",
+   "layer": 6,
+   "window": 1
+  }
+ ],
+ "selection": "greedy forward selection on out-of-fold dev",
+ "oof": {
+  "utt_MSE": 0.12780030095821587,
+  "utt_LCC": 0.8910505615405877,
+  "utt_SRCC": 0.8592144562199997,
+  "utt_KTAU": 0.6805236763373288,
+  "sys_MSE": 0.00807695547676899,
+  "sys_LCC": 0.9920860844234948,
+  "sys_SRCC": 0.9774436090225563,
+  "sys_KTAU": 0.8947368421052632
+ },
+ "eval": null
+}

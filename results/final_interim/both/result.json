@@ -1,0 +1,66 @@
+{
+ "label": "train+dev",
+ "members": {
+  "ft:frozen_wavlm_large": 3,
+  "krr:hubert-large-ll60k_native_both_L1": 1,
+  "krr:wav2vec2-xls-r-300m_resample16k_both_L1": 1,
+  "krr:data2vec-audio-large_native_both_L1": 1,
+  "ridge:wav2vec2-xls-r-1b_native_both": 2,
+  "ft:ours_nosr": 1,
+  "krr:wavlm-large_resample16k_both_L1": 1
+ },
+ "trace": [
+  [
+   "ft:frozen_wavlm_large",
+   0.9154806402667304
+  ],
+  [
+   "krr:hubert-large-ll60k_native_both_L1",
+   0.9270313394960943
+  ],
+  [
+   "krr:wav2vec2-xls-r-300m_resample16k_both_L1",
+   0.9274274965442217
+  ],
+  [
+   "krr:data2vec-audio-large_native_both_L1",
+   0.9277296083848933
+  ],
+  [
+   "ridge:wav2vec2-xls-r-1b_native_both",
+   0.927849588672313
+  ],
+  [
+   "ft:frozen_wavlm_large",
+   0.929233506075419
+  ],
+  [
+   "ft:ours_nosr",
+   0.9295198254307462
+  ],
+  [
+   "ft:frozen_wavlm_large",
+   0.9296147844506429
+  ],
+  [
+   "ridge:wav2vec2-xls-r-1b_native_both",
+   0.9297709518531095
+  ],
+  [
+   "krr:wavlm-large_resample16k_both_L1",
+   0.9299486778016597
+  ]
+ ],
+ "n_candidates": 51,
+ "oof": {
+  "utt_MSE": 0.12780030095821587,
+  "utt_LCC": 0.8910505615405877,
+  "utt_SRCC": 0.8592144562199997,
+  "utt_KTAU": 0.6805236763373288,
+  "sys_MSE": 0.00807695547676899,
+  "sys_LCC": 0.9920860844234948,
+  "sys_SRCC": 0.9774436090225563,
+  "sys_KTAU": 0.8947368421052632
+ },
+ "eval": null
+}

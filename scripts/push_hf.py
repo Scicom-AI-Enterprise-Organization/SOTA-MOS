@@ -144,7 +144,8 @@ def main():
 
     HfApi(token=repo_token()).upload_folder(
         folder_path=str(stage), repo_id=args.repo, repo_type="model", path_in_repo=args.path_in_repo,
-        commit_message="Add SOTA-MOS final ensemble (AudioMOS 2025 Track 3)")
+        delete_patterns=["*"],  # replace the folder: drop files of an earlier release that this one lacks
+        commit_message="SOTA-MOS ensemble (AudioMOS 2025 Track 3)")
     print(f"uploaded to https://huggingface.co/{args.repo}/tree/main/{args.path_in_repo}")
 
 

@@ -1,0 +1,24 @@
+{
+ "label": "train-only",
+ "members": {
+  "ft:frozen_hubert_large_single": 1
+ },
+ "trace": [
+  [
+   "ft:frozen_hubert_large_single",
+   0.8951306582485714
+  ]
+ ],
+ "n_candidates": 40,
+ "oof": {
+  "utt_MSE": 0.15957439575195312,
+  "utt_LCC": 0.8621146000037603,
+  "utt_SRCC": 0.8138438696787181,
+  "utt_KTAU": 0.6264934858652127,
+  "sys_MSE": 0.018145875379774294,
+  "sys_LCC": 0.9797521332366196,
+  "sys_SRCC": 0.9248120300751879,
+  "sys_KTAU": 0.7789473684210527
+ },
+ "eval": null
+}

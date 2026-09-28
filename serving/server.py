@@ -9,9 +9,9 @@
                            attention mask; probe and fine-tuned heads -> weighted MOS
         -> JSON {"mos", "input_sampling_rate", "sampling_rate", "duration_s", "batch_size", "gpu_ms", "total_ms"}
 
-Clips vary in length, so the batch former sorts the waiting clips by length and cuts batches whose
-padded size (clips x longest clip) stays under MAX_BATCH_SECONDS of 16 kHz audio. Nothing CPU- or
-GPU-bound runs on the event loop.
+Clips vary in length. Each batch starts from the oldest waiting clip (so long clips never starve)
+and adds the waiting clips closest to its length, while the padded size (clips x longest clip)
+stays under MAX_BATCH_SECONDS of 16 kHz audio. Nothing CPU- or GPU-bound runs on the event loop.
 
 Endpoints: POST /predict (multipart 'file') . GET /health . GET /stats . POST /warmup . GET /
 """
@@ -85,13 +85,21 @@ def _score(items):
 
 
 def _cut(buf):
-    """Take the next batch: clips sorted by length, as many as fit MAX_BATCH and the padded budget."""
-    buf.sort(key=lambda it: len(it["r16"]))
+    """Next batch: the oldest waiting clip (so long clips never starve), then the waiting clips closest
+    to its length, up to MAX_BATCH clips and MAX_BATCH_SECONDS of padded audio."""
     budget = MAX_BATCH_SECONDS * 16000
-    take = 1
-    while take < min(MAX_BATCH, len(buf)) and (take + 1) * len(buf[take]["r16"]) <= budget:
-        take += 1
-    return buf[:take], buf[take:]
+    anchor = min(range(len(buf)), key=lambda i: buf[i]["t"])
+    first = buf.pop(anchor)
+    buf.sort(key=lambda it: abs(len(it["r16"]) - len(first["r16"])))
+    batch, rest, longest = [first], [], len(first["r16"])
+    for it in buf:
+        n = max(longest, len(it["r16"]))
+        if len(batch) < MAX_BATCH and (len(batch) + 1) * n <= budget:
+            batch.append(it)
+            longest = n
+        else:
+            rest.append(it)
+    return batch, rest
 
 
 async def _batch_loop():
@@ -185,7 +193,7 @@ async def predict(file: UploadFile = File(...)):
     t0 = time.perf_counter()
     fut = loop.create_future()
     STATS["requests"] += 1
-    await Q.put({"native": native, "sr": sr, "r16": r16, "fut": fut, "loop": loop})
+    await Q.put({"native": native, "sr": sr, "r16": r16, "fut": fut, "loop": loop, "t": time.monotonic()})
     mos, gpu_ms, bs = await fut
     return JSONResponse({"mos": round(mos, 4), "input_sampling_rate": sr_in, "sampling_rate": sr,
                          "duration_s": round(len(native) / sr, 3),

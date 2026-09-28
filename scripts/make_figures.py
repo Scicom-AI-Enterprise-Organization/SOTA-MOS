@@ -74,8 +74,8 @@ def ablation():
 
 
 def eval_bars(entries, fname, metric="sys_SRCC", title=None):
-    """entries: list of (label, value, per_seed_values or None, kind) kind in published|replication|ours|utmos."""
-    color = {"published": ps.AXIS, "replication": ps.SERIES[0], "utmos": ps.SERIES[2], "ours": ps.SERIES[1]}
+    """entries: list of (label, value, per_seed_values or None, kind), kind a key of KIND_COLOR."""
+    color = KIND_COLOR
     entries = sorted(entries, key=lambda e: e[1])
     fig, ax = plt.subplots(figsize=(7.6, 0.36 * len(entries) + 1.3))
     for i, (lab, v, seeds, kind) in enumerate(entries):
@@ -88,8 +88,8 @@ def eval_bars(entries, fname, metric="sys_SRCC", title=None):
     vals = [e[1] for e in entries] + [s for e in entries if e[2] is not None for s in e[2]]
     ax.set_xlim(max(0.0, min(vals) - 0.05), 1.0 if "MSE" not in metric else max(vals) * 1.15)
     ax.set_xlabel(f"eval {metric.replace('_', ' ')}  (bar = ensemble, dots = single seeds)")
-    handles = [plt.Rectangle((0, 0), 1, 1, color=color[k]) for k in ["published", "replication", "utmos", "ours"]]
-    ax.legend(handles, ["published (challenge)", "our replication", "faster-UTMOSv2 zero-shot", "ours"],
+    kinds = [k for k in KIND_COLOR if any(e[3] == k for e in entries)]
+    ax.legend([plt.Rectangle((0, 0), 1, 1, color=color[k]) for k in kinds], [KIND_LABEL[k] for k in kinds],
               loc="lower right", fontsize=7.5)
     ax.set_title(title or f"Track 3 eval, {metric.replace('_', ' ')}")
     ax.grid(axis="y", visible=False)
@@ -211,7 +211,7 @@ def final_grid():
 
 def final_bars():
     rows = final_systems()
-    eval_bars([(lab, m["sys_SRCC"], None, {"ours-train": "ours", **{k: k for k in KIND_COLOR}}[kind]) for lab, kind, m in rows],
+    eval_bars([(lab, m["sys_SRCC"], None, kind) for lab, kind, m in rows],
               "final_sys_srcc.png", "sys_SRCC", "Track 3 eval: system-level SRCC (primary metric)")
 
 
@@ -246,24 +246,55 @@ def final_scatter():
 
 
 def serving():
-    rows = json.load(open("results/serving_bench.json"))
-    fig, axes = plt.subplots(1, 3, figsize=(13, 3.8))
-    c = [r["concurrency"] for r in rows]
-    for ax, key, lab in [(axes[0], "rtf", "RTF (audio seconds per wall second)"), (axes[1], "p50_ms", "p50 latency (ms)"),
-                         (axes[2], "batch_avg", "average GPU batch size")]:
-        ax.plot(c, [r[key] for r in rows], marker="o", color=ps.SERIES[1], lw=2)
-        for x, r in zip(c, rows):
-            ax.annotate(f"{r[key]:.0f}" if key != "batch_avg" else f"{r[key]:.1f}", (x, r[key]), xytext=(0, 6),
-                        textcoords="offset points", ha="center", fontsize=7.5, color=ps.INK2)
+    """Our server vs faster-UTMOSv2's server: same GPU type, same 400 eval clips, same client."""
+    runs = [("ours: 3 frozen-SSL members x 5 folds, whole clips", "results/serving_bench.json", ps.SERIES[1]),
+            ("faster-UTMOSv2: 1 fold, one 3 s crop", "results/serving_bench_utmosv2.json", ps.SERIES[2])]
+    runs = [r for r in runs if Path(r[1]).exists()]
+    fig, axes = plt.subplots(1, 3, figsize=(13.5, 3.9))
+    for lab, path, col in runs:
+        rows = json.load(open(path))
+        c = [r["concurrency"] for r in rows]
+        for ax, key in zip(axes, ["req_s", "p50_ms", "batch_avg"]):
+            ax.plot(c, [r[key] for r in rows], marker="o", color=col, lw=2, label=lab)
+    for ax, title in zip(axes, ["throughput (requests / s)", "p50 latency (ms)", "average GPU batch size"]):
         ax.set_xscale("log", base=2)
+        ax.set_xticks([1, 4, 8, 16, 32, 64])
+        ax.set_xticklabels([1, 4, 8, 16, 32, 64])
+        ax.set_xlabel("concurrent requests")
+        ax.set_title(title, fontsize=10)
+    axes[1].set_yscale("log")
+    axes[0].legend(loc="upper left", fontsize=7.5)
+    fig.suptitle("Serving on one GPU with dynamic batching (400 Track 3 eval clips, 1,506 s of audio)", fontsize=11,
+                 fontweight="bold", color=ps.INK)
+    ps.save(fig, FIG / "serving.png")
+
+
+def serving_latency():
+    """Client latency percentiles vs concurrency, both servers (one panel each, shared y axis)."""
+    runs = [("SOTA-MOS", "results/serving_bench.json", ps.SERIES[1]),
+            ("faster-UTMOSv2", "results/serving_bench_utmosv2.json", ps.SERIES[2])]
+    fig, axes = plt.subplots(1, 2, figsize=(11.5, 3.9), sharey=True)
+    styles = [("p50_ms", "p50", "-"), ("p95_ms", "p95", "--"), ("p99_ms", "p99", ":")]
+    for ax, (name, path, col) in zip(axes, runs):
+        rows = json.load(open(path))
+        c = [r["concurrency"] for r in rows]
+        for key, lab, ls in styles:
+            ax.plot(c, [r[key] for r in rows], marker="o", color=col, lw=2, ls=ls, label=lab, markersize=5)
+        ax.set_xscale("log", base=2)
+        ax.set_yscale("log")
         ax.set_xticks(c)
         ax.set_xticklabels(c)
         ax.set_xlabel("concurrent requests")
-        ax.set_title(lab, fontsize=10)
-    fig.suptitle("Serving the final ensemble (dynamic batching, one GPU)", fontsize=11, fontweight="bold", color=ps.INK)
-    ps.save(fig, FIG / "serving.png")
+        ax.set_title(name, fontsize=10)
+        ax.legend(loc="upper left", fontsize=8)
+    axes[0].set_ylabel("client latency (ms, log scale)")
+    fig.suptitle("Serving latency percentiles on one GPU (400 Track 3 eval clips)", fontsize=11, fontweight="bold",
+                 color=ps.INK)
+    ps.save(fig, FIG / "serving_latency.png")
 
 
 if __name__ == "__main__":
     {"probes": probes, "ablation": ablation, "replication": replication, "final_grid": final_grid,
-     "final_bars": final_bars, "final_scatter": final_scatter, "serving": serving}[sys.argv[1]]()
+     "final_bars": final_bars, "final_scatter": final_scatter, "serving": serving, "serving_latency": serving_latency,
+     "all": lambda: [f() for f in (probes, ablation, replication, final_grid, final_bars, final_scatter, serving,
+                                   serving_latency)]}[sys.argv[1]]()

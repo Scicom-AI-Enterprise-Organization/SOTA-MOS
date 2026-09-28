@@ -1,0 +1,86 @@
+{
+ "train+dev": {
+  "label": "train+dev",
+  "members": {
+   "ft:frozen_d2v_large": 1,
+   "ft:frozen_xlsr300m": 1,
+   "ft:frozen_xlsr1b": 1
+  },
+  "trace": [
+   [
+    "ft:frozen_d2v_large",
+    0.9339167011915703
+   ],
+   [
+    "ft:frozen_xlsr300m",
+    0.9371997124227576
+   ],
+   [
+    "ft:frozen_xlsr1b",
+    0.9385335379080599
+   ]
+  ],
+  "oof": {
+   "utt_MSE": 0.11251741265190972,
+   "utt_LCC": 0.9053314814966841,
+   "utt_SRCC": 0.8780056719562371,
+   "utt_KTAU": 0.7057605852531887,
+   "sys_MSE": 0.008663619505328918,
+   "sys_LCC": 0.9918496297582658,
+   "sys_SRCC": 0.9789473684210527,
+   "sys_KTAU": 0.8947368421052632
+  },
+  "eval": {
+   "utt_MSE": 0.20797509155273436,
+   "utt_LCC": 0.8877103364657982,
+   "utt_SRCC": 0.8029745193218023,
+   "utt_KTAU": 0.622839606875242,
+   "sys_MSE": 0.10054354555483214,
+   "sys_LCC": 0.988849207483783,
+   "sys_SRCC": 0.9684210526315788,
+   "sys_KTAU": 0.8842105263157894
+  }
+ },
+ "train-only": {
+  "label": "train-only",
+  "members": {
+   "ft:frozen_xlsr1b_single": 1,
+   "ft:frozen_xlsr300m_single": 1,
+   "ft:frozen_w2v2_large_single": 1
+  },
+  "trace": [
+   [
+    "ft:frozen_xlsr1b_single",
+    0.9043463592325363
+   ],
+   [
+    "ft:frozen_xlsr300m_single",
+    0.909537875596875
+   ],
+   [
+    "ft:frozen_w2v2_large_single",
+    0.90962034333279
+   ]
+  ],
+  "oof": {
+   "utt_MSE": 0.1335564480251736,
+   "utt_LCC": 0.8852882753887391,
+   "utt_SRCC": 0.840179476608464,
+   "utt_KTAU": 0.654483536613983,
+   "sys_MSE": 0.01593271936487267,
+   "sys_LCC": 0.9821865536647839,
+   "sys_SRCC": 0.9308270676691727,
+   "sys_KTAU": 0.7999999999999999
+  },
+  "eval": {
+   "utt_MSE": 0.2517804714626736,
+   "utt_LCC": 0.8458089861097794,
+   "utt_SRCC": 0.7177967238942976,
+   "utt_KTAU": 0.5343428353160592,
+   "sys_MSE": 0.11443170453860425,
+   "sys_LCC": 0.970476061094461,
+   "sys_SRCC": 0.9097744360902256,
+   "sys_KTAU": 0.7789473684210527
+  }
+ }
+}

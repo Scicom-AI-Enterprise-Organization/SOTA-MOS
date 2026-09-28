@@ -103,25 +103,35 @@ class Engine:
                     out[layer][i] = torch.cat([v.mean(0), v.std(0)]).half().float().cpu()
         return {layer: torch.stack(v).numpy().astype(np.float64) for layer, v in out.items()}
 
+    def _spec(self, cfg, stats, clips, cache):
+        """Padded mel / MFCC batches, computed once per batch for every member and fold that shares
+        the same feature settings and normalisation statistics."""
+        key = (cfg["n_mels"], cfg["n_mfcc"], cfg["mel_fmax"], cfg["mel_win_ms"], cfg["mel_hop_ms"],
+               cfg["mel_fmax_mode"], float(stats["mel_mu"].sum()), float(stats["mfcc_mu"].sum()))
+        if key not in cache:
+            feats = [normalise(*raw_features(n, sr, cfg["n_mels"], cfg["n_mfcc"], cfg["mel_fmax"], cfg["mel_win_ms"],
+                                             cfg["mel_hop_ms"], cfg["mel_fmax_mode"]), stats) for n, sr, _ in clips]
+            out = {}
+            for k, which in [(0, "mel"), (1, "mfcc")]:
+                fl = torch.tensor([f[k].shape[1] for f in feats])
+                t = torch.zeros(len(feats), feats[0][k].shape[0], int(fl.max()))
+                for i, f in enumerate(feats):
+                    t[i, :, : f[k].shape[1]] = f[k]
+                out[which], out[f"{which}_lens"] = t.to(self.device), fl.to(self.device)
+            cache[key] = out
+        return cache[key]
+
     @torch.no_grad()
-    def _finetuned(self, folds, clips):
+    def _finetuned(self, folds, clips, spec_cache):
         preds, shared = [], {}
         for model, cfg, stats in folds:
             wav, lens = collate([n if cfg["input_mode"] == "native" else r for n, _, r in clips], True)
             b = {"wav": wav, "lens": lens,
                  "sr_idx": torch.tensor([SR_INDEX[nearest_rate(sr)] for _, sr, _ in clips]),
                  "test_idx": torch.full((len(clips),), TEST_INDEX["mix"])}
-            if cfg["mel"] or cfg["mfcc"]:
-                feats = [normalise(*raw_features(n, sr, cfg["n_mels"], cfg["n_mfcc"], cfg["mel_fmax"],
-                                                 cfg["mel_win_ms"], cfg["mel_hop_ms"], cfg["mel_fmax_mode"]), stats)
-                         for n, sr, _ in clips]
-                for k, which in [(0, "mel"), (1, "mfcc")]:
-                    fl = torch.tensor([f[k].shape[1] for f in feats])
-                    t = torch.zeros(len(feats), feats[0][k].shape[0], int(fl.max()))
-                    for i, f in enumerate(feats):
-                        t[i, :, : f[k].shape[1]] = f[k]
-                    b[which], b[f"{which}_lens"] = t, fl
             b = {k: v.to(self.device) for k, v in b.items()}
+            if cfg["mel"] or cfg["mfcc"]:
+                b.update(self._spec(cfg, stats, clips, spec_cache))
             with self._amp():
                 if cfg.get("freeze") == "all":
                     # frozen backbone: identical in every fold, so encode once per batch and share it
@@ -147,7 +157,8 @@ class Engine:
             F = np.mean([pooled[(m["backbone"], m["input_mode"])][i] for i in range(lo, lo + m["window"])], 0)
             total += m["weight"] * np.mean([predict_fold(st, m["kind"], F, sr_idx) for st in states], 0)
             wsum += m["weight"]
+        spec_cache = {}
         for m, folds in self.ft:
-            total += m["weight"] * self._finetuned(folds, clips)
+            total += m["weight"] * self._finetuned(folds, clips, spec_cache)
             wsum += m["weight"]
         return total / wsum
