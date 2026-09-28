@@ -1,0 +1,14 @@
+{
+ "feats": "data/feats/hubert-base-ls960_native.pt",
+ "labels": "single",
+ "best_layer": 2,
+ "alpha": 100,
+ "oof_utt_MSE": 0.2160504280055356,
+ "oof_utt_LCC": 0.8199026170671663,
+ "oof_utt_SRCC": 0.7887065058944279,
+ "oof_utt_KTAU": 0.5932069630327382,
+ "oof_sys_MSE": 0.032706568840108655,
+ "oof_sys_LCC": 0.9684674223163309,
+ "oof_sys_SRCC": 0.8300751879699247,
+ "oof_sys_KTAU": 0.6736842105263158
+}

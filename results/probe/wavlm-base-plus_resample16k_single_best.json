@@ -1,0 +1,14 @@
+{
+ "feats": "data/feats/wavlm-base-plus_resample16k.pt",
+ "labels": "single",
+ "best_layer": 2,
+ "alpha": 1000,
+ "oof_utt_MSE": 0.19362545648727086,
+ "oof_utt_LCC": 0.838317976646242,
+ "oof_utt_SRCC": 0.7781914075925573,
+ "oof_utt_KTAU": 0.586437235406724,
+ "oof_sys_MSE": 0.03223763276958021,
+ "oof_sys_LCC": 0.9772283843314388,
+ "oof_sys_SRCC": 0.8360902255639097,
+ "oof_sys_KTAU": 0.6736842105263158
+}

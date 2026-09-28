@@ -1,0 +1,14 @@
+{
+ "feats": "data/feats/hubert-large-ll60k_native.pt",
+ "labels": "single",
+ "best_layer": 4,
+ "alpha": 1000,
+ "oof_utt_MSE": 0.18657457499531482,
+ "oof_utt_LCC": 0.8464669655218022,
+ "oof_utt_SRCC": 0.7987889099750309,
+ "oof_utt_KTAU": 0.6048304576358946,
+ "oof_sys_MSE": 0.03757834953510515,
+ "oof_sys_LCC": 0.9651574104560079,
+ "oof_sys_SRCC": 0.8300751879699247,
+ "oof_sys_KTAU": 0.6736842105263158
+}

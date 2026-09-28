@@ -1,0 +1,14 @@
+{
+ "feats": "data/feats/wav2vec2-xls-r-300m_resample16k.pt",
+ "labels": "single",
+ "best_layer": 7,
+ "alpha": 1000,
+ "oof_utt_MSE": 0.17346640853955336,
+ "oof_utt_LCC": 0.8552932966461994,
+ "oof_utt_SRCC": 0.801512134069845,
+ "oof_utt_KTAU": 0.6066442337168267,
+ "oof_sys_MSE": 0.03229526963266122,
+ "oof_sys_LCC": 0.9729364064298238,
+ "oof_sys_SRCC": 0.8360902255639097,
+ "oof_sys_KTAU": 0.6736842105263158
+}

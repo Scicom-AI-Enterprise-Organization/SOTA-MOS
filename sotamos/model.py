@@ -15,9 +15,15 @@ from transformers import AutoConfig, AutoFeatureExtractor, AutoModel
 
 
 class SSLBackbone(nn.Module):
-    def __init__(self, name: str, layer="last", freeze: str = "none"):
+    """layer: "last", "weighted" (softmax-weighted sum of hidden states) or an int index.
+    max_layers > 0 drops every transformer block above it; the probes put the quality
+    signal at 15-30% of the depth, so the upper blocks are mostly cost."""
+
+    def __init__(self, name: str, layer="last", freeze: str = "none", max_layers: int = 0):
         super().__init__()
         cfg = AutoConfig.from_pretrained(name)
+        if max_layers:
+            cfg.num_hidden_layers = max_layers  # from_pretrained then loads only the kept blocks
         # fine-tune without SpecAugment-style masking or layer drop (as mos-finetune-ssl: mask=False)
         for k, v in dict(apply_spec_augment=False, layerdrop=0.0, mask_time_prob=0.0, mask_feature_prob=0.0).items():
             if hasattr(cfg, k):
@@ -125,7 +131,8 @@ class MOSModel(nn.Module):
     def __init__(self, cfg: dict):
         super().__init__()
         self.cfg = cfg
-        self.ssl = SSLBackbone(cfg["backbone"], cfg.get("layer", "last"), cfg.get("freeze", "none"))
+        self.ssl = SSLBackbone(cfg["backbone"], cfg.get("layer", "last"), cfg.get("freeze", "none"),
+                               cfg.get("max_layers", 0))
         d_proj = cfg.get("d_ssl_proj", 0)
         self.ssl_proj = nn.Linear(self.ssl.dim, d_proj) if d_proj else nn.Identity()
         d_frame = d_proj or self.ssl.dim

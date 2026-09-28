@@ -87,6 +87,10 @@ A model that resamples everything to 16 kHz sees the same 0–8 kHz band for 16k
 - **Eval labels are never used for selection.** Checkpoints, configs and ensemble members are chosen on dev labels, or on out-of-fold predictions from 5-fold CV grouped by sentence.
 - **Two label settings.** *train-only* uses the train labels, as in the HighRateMOS paper.
   *train+dev* adds the dev labels, which the challenge released at the start of its evaluation phase. Every result states which one it uses.
+- **The final system is picked by a fixed rule, written down before any of our systems was scored on eval.**
+  Greedy forward selection with replacement (Caruana et al., 2004, at most 10 members) runs over every train+dev candidate:
+  fine-tuned CV systems and frozen-feature probes. The score is the mean of utt LCC, utt SRCC, sys LCC and sys SRCC,
+  computed on out-of-fold predictions for the 400 dev clips. The chosen ensemble is scored on eval once.
 
 ## Systems
 
@@ -121,6 +125,29 @@ Launched 2026-09-28 on 8×H20, 4 runs per GPU. Every run writes its dev (or out-
 ## Results
 
 Running. Tables and figures land here as runs finish.
+
+### Frozen SSL features: the quality signal sits in early layers
+
+![Probe quality per layer](results/figures/probe_layers.png)
+
+Ridge regression on the mean and std of one frozen layer, plus one-hots for sampling rate and listening test, trained on train+dev labels.
+The scores are out-of-fold on the dev labels, using the same 5 sentence folds as fine-tuning.
+
+**Every backbone peaks at 15–30% of its depth.** The last layers of data2vec, HuBERT-large and WavLM-large lose up to half of the signal.
+
+| probe (best layer) | utt LCC | utt SRCC | utt MSE | sys SRCC | sys KTAU |
+|---|---:|---:|---:|---:|---:|
+| XLS-R 300M, layer 7 | **0.872** | 0.827 | 0.149 | 0.917 | 0.789 |
+| HuBERT-large, layer 4 | **0.872** | 0.827 | **0.148** | 0.947 | 0.842 |
+| WavLM-large, layer 6 | 0.867 | 0.819 | 0.154 | 0.940 | 0.832 |
+| XLS-R 1B, layer 9 | 0.866 | 0.822 | 0.155 | 0.938 | 0.821 |
+| wav2vec2-large, layer 19 | 0.860 | 0.816 | 0.163 | 0.937 | 0.821 |
+| data2vec-large, layer 1 | 0.853 | 0.809 | 0.171 | **0.974** | **0.884** |
+| wav2vec2-base, layer 2 | 0.836 | 0.774 | 0.189 | 0.908 | 0.789 |
+| MFCC statistics | 0.623 | 0.644 | 0.417 | 0.976 | 0.916 |
+
+MFCC statistics rank the dev conditions well (sys SRCC 0.976) while ranking clips poorly (utt LCC 0.62). The same probe trained on train labels alone still reaches sys SRCC 0.970.
+That is above the 0.874 ceiling for a model that reproduces the train labels exactly. The system-level ranking is sensitive to per-rate offsets that a model can hit by accident.
 
 ## Setup
 

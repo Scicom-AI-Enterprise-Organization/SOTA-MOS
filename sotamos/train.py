@@ -278,7 +278,8 @@ def main():
         p_pool = predict(model, pool, cache, spec, cfg, device)
         pd.DataFrame({"clip": pool["clip"].values, "pred": p_pool}).to_csv(out / "pred_pool.csv", index=False)
     if cfg["save_ckpt"]:
-        torch.save(model.state_dict(), out / "model.pt")
+        torch.save({"state_dict": model.state_dict(), "cfg": cfg,
+                    "spec_stats": spec.stats if spec is not None else None}, out / "model.pt")
     json.dump({"best_step": final_step, "best": best, "elapsed": time.time() - t0}, open(out / "result.json", "w"),
               indent=1)
     (out / "done").write_text("ok\n")

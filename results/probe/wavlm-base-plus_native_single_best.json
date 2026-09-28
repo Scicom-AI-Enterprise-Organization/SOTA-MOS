@@ -1,0 +1,14 @@
+{
+ "feats": "data/feats/wavlm-base-plus_native.pt",
+ "labels": "single",
+ "best_layer": 2,
+ "alpha": 1000,
+ "oof_utt_MSE": 0.20421717910485537,
+ "oof_utt_LCC": 0.8284417455967874,
+ "oof_utt_SRCC": 0.7649474548221413,
+ "oof_utt_KTAU": 0.5702665275302449,
+ "oof_sys_MSE": 0.044887937498473994,
+ "oof_sys_LCC": 0.958416260216556,
+ "oof_sys_SRCC": 0.7548872180451127,
+ "oof_sys_KTAU": 0.5894736842105264
+}

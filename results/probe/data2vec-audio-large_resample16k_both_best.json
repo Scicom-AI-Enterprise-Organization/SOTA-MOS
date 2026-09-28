@@ -1,0 +1,14 @@
+{
+ "feats": "data/feats/data2vec-audio-large_resample16k.pt",
+ "labels": "both",
+ "best_layer": 1,
+ "alpha": 100,
+ "oof_utt_MSE": 0.17100455863377126,
+ "oof_utt_LCC": 0.8533041792419271,
+ "oof_utt_SRCC": 0.8092874925139557,
+ "oof_utt_KTAU": 0.62026032739481,
+ "oof_sys_MSE": 0.009833560021764685,
+ "oof_sys_LCC": 0.9903674067776502,
+ "oof_sys_SRCC": 0.9744360902255638,
+ "oof_sys_KTAU": 0.8842105263157894
+}

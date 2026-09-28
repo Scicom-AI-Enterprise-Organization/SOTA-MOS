@@ -1,0 +1,29 @@
+{
+ "members": {
+  "hubert-large-ll60k_resample16k": 1,
+  "wav2vec2-xls-r-1b_native": 1,
+  "wav2vec2-large-lv60_resample16k": 1,
+  "data2vec-audio-large_resample16k": 1,
+  "wavlm-large_native": 1
+ },
+ "oof": {
+  "utt_MSE": 0.135802900222087,
+  "utt_LCC": 0.8845407642717846,
+  "utt_SRCC": 0.8474125360017892,
+  "utt_KTAU": 0.6677761514868341,
+  "sys_MSE": 0.010350355634931292,
+  "sys_LCC": 0.9915956696363465,
+  "sys_SRCC": 0.9849624060150375,
+  "sys_KTAU": 0.9263157894736842
+ },
+ "eval": {
+  "utt_MSE": 0.23295409705925696,
+  "utt_LCC": 0.8647230455795719,
+  "utt_SRCC": 0.757143304043944,
+  "utt_KTAU": 0.5724659305923854,
+  "sys_MSE": 0.11954056936055597,
+  "sys_LCC": 0.9794219684282703,
+  "sys_SRCC": 0.9669172932330825,
+  "sys_KTAU": 0.8736842105263158
+ }
+}

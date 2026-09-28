@@ -2,6 +2,7 @@
 
   uv run python scripts/make_jobs.py phase1   # replication (train labels, dev selection)
   uv run python scripts/make_jobs.py phase2   # ours: CV ablations
+  uv run python scripts/make_jobs.py phase3   # ours on truncated SSL backbones
   uv run python scripts/make_jobs.py utmos    # faster-UTMOSv2: pretrained, zero-shot
 """
 
@@ -62,6 +63,27 @@ def phase2():
     return jobs
 
 
+def phase3():
+    """Our model on SSL backbones truncated just above the best probe layer (weighted layer sum)."""
+    base = "configs/ours_base.yaml"
+    variants = {
+        "ours_wavlm_large_L8w": "backbone=microsoft/wavlm-large max_layers=8",
+        "ours_hubert_large_L6w": "backbone=facebook/hubert-large-ll60k max_layers=6",
+        "ours_xlsr300m_L10w": "backbone=facebook/wav2vec2-xls-r-300m max_layers=10",
+        "ours_xlsr1b_L14w": "backbone=facebook/wav2vec2-xls-r-1b max_layers=14",
+        "ours_d2v_large_L4w": "backbone=facebook/data2vec-audio-large max_layers=4",
+        "ours_w2v2_large_w": "backbone=facebook/wav2vec2-large-lv60",
+        "ours_wavlm_base_L4w": "backbone=microsoft/wavlm-base-plus max_layers=4",
+        "ours_hubert_base_L4w": "backbone=facebook/hubert-base-ls960 max_layers=4",
+        "ours_hubert_large_L6w_native": "backbone=facebook/hubert-large-ll60k max_layers=6 input_mode=native",
+        "ours_xlsr1b_L14w_native": "backbone=facebook/wav2vec2-xls-r-1b max_layers=14 input_mode=native",
+    }
+    jobs = []
+    for name, extra in variants.items():
+        jobs += cv_runs(f"cv/{name}", base, extra=f"--set layer=weighted {extra}")
+    return jobs
+
+
 def utmos():
     # faster-UTMOSv2 off the shelf: each pretrained fold, zero-shot
     return [(f"exp/utmosv2/zeroshot/s{f}", f"-m sotamos.utmos --fold {f}") for f in FOLDS]
@@ -69,7 +91,7 @@ def utmos():
 
 if __name__ == "__main__":
     phase = sys.argv[1]
-    jobs = {"phase1": phase1, "phase2": phase2, "utmos": utmos}[phase]()
+    jobs = {"phase1": phase1, "phase2": phase2, "phase3": phase3, "utmos": utmos}[phase]()
     Path("jobs").mkdir(exist_ok=True)
     with open(f"jobs/{phase}.txt", "w") as f:
         for out, args in jobs:

@@ -24,8 +24,11 @@ class AudioCache:
 
     def __init__(self, clips: pd.DataFrame, cache_path="data/cache/audio.pt"):
         if cache_path and os.path.exists(cache_path):
-            d = torch.load(cache_path)
-            if set(d["native"]) >= set(clips["clip"]):
+            try:
+                d = torch.load(cache_path)
+            except Exception:
+                d = None
+            if d is not None and set(d["native"]) >= set(clips["clip"]):
                 self.native, self.r16 = d["native"], d["r16"]
                 return
         self.native, self.r16 = {}, {}
@@ -40,7 +43,9 @@ class AudioCache:
                 resampling_method="sinc_interp_kaiser", beta=14.769656459379492)
         if cache_path:
             os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-            torch.save({"native": self.native, "r16": self.r16}, cache_path)
+            tmp = f"{cache_path}.tmp{os.getpid()}"
+            torch.save({"native": self.native, "r16": self.r16}, tmp)
+            os.replace(tmp, cache_path)
 
     def get(self, clip: str, mode: str) -> torch.Tensor:
         return self.native[clip] if mode == "native" else self.r16[clip]

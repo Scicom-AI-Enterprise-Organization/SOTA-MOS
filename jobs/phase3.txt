@@ -1,0 +1,50 @@
+exp/cv/ours_wavlm_large_L8w/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set layer=weighted backbone=microsoft/wavlm-large max_layers=8
+exp/cv/ours_wavlm_large_L8w/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set layer=weighted backbone=microsoft/wavlm-large max_layers=8
+exp/cv/ours_wavlm_large_L8w/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set layer=weighted backbone=microsoft/wavlm-large max_layers=8
+exp/cv/ours_wavlm_large_L8w/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set layer=weighted backbone=microsoft/wavlm-large max_layers=8
+exp/cv/ours_wavlm_large_L8w/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set layer=weighted backbone=microsoft/wavlm-large max_layers=8
+exp/cv/ours_hubert_large_L6w/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set layer=weighted backbone=facebook/hubert-large-ll60k max_layers=6
+exp/cv/ours_hubert_large_L6w/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set layer=weighted backbone=facebook/hubert-large-ll60k max_layers=6
+exp/cv/ours_hubert_large_L6w/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set layer=weighted backbone=facebook/hubert-large-ll60k max_layers=6
+exp/cv/ours_hubert_large_L6w/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set layer=weighted backbone=facebook/hubert-large-ll60k max_layers=6
+exp/cv/ours_hubert_large_L6w/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set layer=weighted backbone=facebook/hubert-large-ll60k max_layers=6
+exp/cv/ours_xlsr300m_L10w/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set layer=weighted backbone=facebook/wav2vec2-xls-r-300m max_layers=10
+exp/cv/ours_xlsr300m_L10w/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set layer=weighted backbone=facebook/wav2vec2-xls-r-300m max_layers=10
+exp/cv/ours_xlsr300m_L10w/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set layer=weighted backbone=facebook/wav2vec2-xls-r-300m max_layers=10
+exp/cv/ours_xlsr300m_L10w/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set layer=weighted backbone=facebook/wav2vec2-xls-r-300m max_layers=10
+exp/cv/ours_xlsr300m_L10w/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set layer=weighted backbone=facebook/wav2vec2-xls-r-300m max_layers=10
+exp/cv/ours_xlsr1b_L14w/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set layer=weighted backbone=facebook/wav2vec2-xls-r-1b max_layers=14
+exp/cv/ours_xlsr1b_L14w/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set layer=weighted backbone=facebook/wav2vec2-xls-r-1b max_layers=14
+exp/cv/ours_xlsr1b_L14w/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set layer=weighted backbone=facebook/wav2vec2-xls-r-1b max_layers=14
+exp/cv/ours_xlsr1b_L14w/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set layer=weighted backbone=facebook/wav2vec2-xls-r-1b max_layers=14
+exp/cv/ours_xlsr1b_L14w/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set layer=weighted backbone=facebook/wav2vec2-xls-r-1b max_layers=14
+exp/cv/ours_d2v_large_L4w/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set layer=weighted backbone=facebook/data2vec-audio-large max_layers=4
+exp/cv/ours_d2v_large_L4w/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set layer=weighted backbone=facebook/data2vec-audio-large max_layers=4
+exp/cv/ours_d2v_large_L4w/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set layer=weighted backbone=facebook/data2vec-audio-large max_layers=4
+exp/cv/ours_d2v_large_L4w/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set layer=weighted backbone=facebook/data2vec-audio-large max_layers=4
+exp/cv/ours_d2v_large_L4w/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set layer=weighted backbone=facebook/data2vec-audio-large max_layers=4
+exp/cv/ours_w2v2_large_w/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set layer=weighted backbone=facebook/wav2vec2-large-lv60
+exp/cv/ours_w2v2_large_w/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set layer=weighted backbone=facebook/wav2vec2-large-lv60
+exp/cv/ours_w2v2_large_w/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set layer=weighted backbone=facebook/wav2vec2-large-lv60
+exp/cv/ours_w2v2_large_w/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set layer=weighted backbone=facebook/wav2vec2-large-lv60
+exp/cv/ours_w2v2_large_w/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set layer=weighted backbone=facebook/wav2vec2-large-lv60
+exp/cv/ours_wavlm_base_L4w/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set layer=weighted backbone=microsoft/wavlm-base-plus max_layers=4
+exp/cv/ours_wavlm_base_L4w/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set layer=weighted backbone=microsoft/wavlm-base-plus max_layers=4
+exp/cv/ours_wavlm_base_L4w/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set layer=weighted backbone=microsoft/wavlm-base-plus max_layers=4
+exp/cv/ours_wavlm_base_L4w/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set layer=weighted backbone=microsoft/wavlm-base-plus max_layers=4
+exp/cv/ours_wavlm_base_L4w/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set layer=weighted backbone=microsoft/wavlm-base-plus max_layers=4
+exp/cv/ours_hubert_base_L4w/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set layer=weighted backbone=facebook/hubert-base-ls960 max_layers=4
+exp/cv/ours_hubert_base_L4w/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set layer=weighted backbone=facebook/hubert-base-ls960 max_layers=4
+exp/cv/ours_hubert_base_L4w/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set layer=weighted backbone=facebook/hubert-base-ls960 max_layers=4
+exp/cv/ours_hubert_base_L4w/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set layer=weighted backbone=facebook/hubert-base-ls960 max_layers=4
+exp/cv/ours_hubert_base_L4w/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set layer=weighted backbone=facebook/hubert-base-ls960 max_layers=4
+exp/cv/ours_hubert_large_L6w_native/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set layer=weighted backbone=facebook/hubert-large-ll60k max_layers=6 input_mode=native
+exp/cv/ours_hubert_large_L6w_native/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set layer=weighted backbone=facebook/hubert-large-ll60k max_layers=6 input_mode=native
+exp/cv/ours_hubert_large_L6w_native/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set layer=weighted backbone=facebook/hubert-large-ll60k max_layers=6 input_mode=native
+exp/cv/ours_hubert_large_L6w_native/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set layer=weighted backbone=facebook/hubert-large-ll60k max_layers=6 input_mode=native
+exp/cv/ours_hubert_large_L6w_native/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set layer=weighted backbone=facebook/hubert-large-ll60k max_layers=6 input_mode=native
+exp/cv/ours_xlsr1b_L14w_native/s0_f0	--config configs/ours_base.yaml --seed 0 --fold 0 --set layer=weighted backbone=facebook/wav2vec2-xls-r-1b max_layers=14 input_mode=native
+exp/cv/ours_xlsr1b_L14w_native/s0_f1	--config configs/ours_base.yaml --seed 0 --fold 1 --set layer=weighted backbone=facebook/wav2vec2-xls-r-1b max_layers=14 input_mode=native
+exp/cv/ours_xlsr1b_L14w_native/s0_f2	--config configs/ours_base.yaml --seed 0 --fold 2 --set layer=weighted backbone=facebook/wav2vec2-xls-r-1b max_layers=14 input_mode=native
+exp/cv/ours_xlsr1b_L14w_native/s0_f3	--config configs/ours_base.yaml --seed 0 --fold 3 --set layer=weighted backbone=facebook/wav2vec2-xls-r-1b max_layers=14 input_mode=native
+exp/cv/ours_xlsr1b_L14w_native/s0_f4	--config configs/ours_base.yaml --seed 0 --fold 4 --set layer=weighted backbone=facebook/wav2vec2-xls-r-1b max_layers=14 input_mode=native
