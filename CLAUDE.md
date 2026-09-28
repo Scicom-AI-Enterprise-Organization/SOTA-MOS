@@ -59,9 +59,20 @@ $CP session --session q1                   # alive? exit code? last lines
 | `sotamos/losses.py` | clipped L1/L2 (utt or frame), UTMOS contrastive, LCC, CCC |
 | `sotamos/train.py` | one run; protocols `dev`, `cv`, `full`; writes `pred_val.csv`, `pred_test.csv`, `val_curve.csv` |
 | `sotamos/report.py`, `scripts/report.py` | seed/fold ensembling, HighRateMOS ensemble, markdown tables |
-| `scripts/make_jobs.py`, `scripts/run_queue.py` | job files and a multi-GPU queue (skips runs with a `done` file) |
+| `scripts/make_jobs.py`, `scripts/run_queue.py` | job files (phase1–4, utmos) and a multi-GPU queue; jobs are claimed atomically (`.claim`), so several queues can share files |
+| `scripts/probe.py`, `scripts/probe_krr.py` | ridge / kernel-ridge probes on frozen SSL layers (`data/feats/`) |
+| `scripts/final.py` | the pre-registered final selection; `--no-eval` / `--interim` never touch eval labels |
+| `scripts/export_final.py`, `scripts/push_hf.py`, `scripts/hf_card.py` | export a system (refit check), push `model/` and the root README to Hugging Face |
+| `sotamos/predict.py` | CLI and `SystemScorer`: any sampling rate, nearest trained rate |
+| `serving/` | FastAPI dynamic-batching server, API-compatible with faster-UTMOSv2; `check_api_compat.py`, `check_equivalence.py`, `benchmark.py` |
 
 Run directories follow `exp/<group>/<system>/s{seed}` for dev/full runs and `exp/<group>/<system>/s{seed}_f{fold}` for CV.
+
+## Final system
+
+`results/final/both/system.json`: three frozen-SSL heads (data2vec-large 4 layers, XLS-R 300M 10, XLS-R 1B 14), 5 folds each.
+Eval: utt LCC 0.888, utt SRCC 0.803, sys SRCC 0.968, sys KTAU 0.884 (HighRateMOS: 0.847 / 0.742 / 0.955 / 0.842).
+Eval was scored once, by `scripts/final.py`. Do not re-select on eval.
 
 ## Gotchas
 
@@ -71,5 +82,14 @@ Run directories follow `exp/<group>/<system>/s{seed}` for dev/full runs and `exp
 - HF SSL models get `apply_spec_augment=False` and `layerdrop=0`, as in mos-finetune-ssl (`mask=False`).
 - System-level metrics are fragile, because the 48k conditions average just 5 clips. Look at utterance-level
   metrics and per-seed spread before believing a sys-SRCC gain.
+- `claude-ping sync` runs rsync with `--delete`. Anything generated on the remote must be in `sync_excludes`
+  (`results`, `logs`, `data`, `exp`, `uv.lock` are).
+- Never `pgrep -f`/`pkill -f` with a pattern that also appears in your own command line: it kills your own shell.
+  Use the bracket trick (`[s]otamos`) or exact PIDs. Killing a queue runner kills its children's parent chain too.
+- `--set x=2e-5`: YAML 1.1 reads `2e-5` as a string; `parse_value` coerces it, but write `2.0e-5` in configs.
+- The remote login profile exports its own read-only `HF_TOKEN`. `push_hf.py` reads the repo `.env` token explicitly.
+- Concurrent first-time downloads race (UTMOSv2 checkpoints via wget). Pre-download once before fanning out jobs.
+- The box is shared: after a run finishes, other jobs return to the GPUs. Benchmark only on an idle GPU, and run
+  compared servers back to back.
 - README style: terse sentences, a bold claim leading each finding, tables, and a PNG plot per result section.
-  No "not X, it's Y" constructions.
+  No "not X, it's Y" constructions, and no hardware details.
