@@ -49,9 +49,15 @@ DEFAULTS = dict(
 
 def parse_value(v: str):
     try:
-        return yaml.safe_load(v)
+        out = yaml.safe_load(v)
     except Exception:
-        return v
+        out = v
+    if isinstance(out, str):  # YAML 1.1 reads "2e-5" (no decimal point) as a string
+        try:
+            return float(out)
+        except ValueError:
+            pass
+    return out
 
 
 def load_config(path, overrides):
