@@ -104,6 +104,23 @@ A model that resamples everything to 16 kHz sees the same 0–8 kHz band for 16k
 
 Our model reads every clip at its own sampling rate. The mel branch places all rates on one 0–24 kHz axis, so a 48 kHz clip contributes its 8–24 kHz band and a 16 kHz clip shows its 8 kHz ceiling.
 
+### What we implemented for HighRateMOS
+
+The paper fixes the building blocks and the optimiser. We filled in the rest as follows.
+
+| part | paper | ours |
+|---|---|---|
+| SSL | wav2vec2 Base, native-rate samples fed as if 16 kHz | `facebook/wav2vec2-base`, last layer, fine-tuned end to end |
+| sampling-rate embedding | learnable vector | 32 dims, repeated over frames |
+| mel branch | multi-scale CNN | 80 mel bands over 0–24 kHz (25 ms window, 10 ms hop) at the native rate. Three conv stacks (3×3, 5×5, 7×7), two layers of 32 channels each, pooled to 8 frequency bands, then 128 dims, resampled to the SSL frame rate |
+| MFCC (Model 3) | MFCC | 40 coefficients from the same mel, projected to 64 dims |
+| cross-attention (Models 2, 3) | SSL attends to spectral features | SSL frames query the mel/MFCC frames: 256 dims, 4 heads |
+| aggregation | BLSTM + FC | BLSTM 128 per direction, per-frame FC head (64 hidden, tanh range clip), mean over frames |
+| loss | MAE, rank-based, correlation (challenge summary) | MAE + UTMOS contrastive (margin 0.1) + (1 − LCC), equal weights |
+| optimiser | AdamW, lr 1e-3, batch 8 | same, gradient clipping at 1.0 |
+| stopping | dev sys-SRCC stops rising for 2000 steps | evaluate every 100 steps, patience 20, keep the best |
+| ensemble | Model 1 best of 5 folds + Models 2, 3 | best of 5 = highest dev sys-SRCC over all 400 dev clips |
+
 ## Experiments
 
 Launched 2026-09-28 on 8×H20, 4 runs per GPU. Every run writes its dev (or out-of-fold) and eval predictions. Selection only reads the dev side.
