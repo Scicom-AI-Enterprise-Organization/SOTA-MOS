@@ -1,6 +1,11 @@
-"""Predict MOS for audio files at any sampling rate, averaging one or more trained runs.
+"""Predict MOS for audio files at any sampling rate.
 
-  uv run python -m sotamos.predict --runs exp/cv/ours_base/s0_f* --out scores.csv a.wav b.flac ...
+  uv run python -m sotamos.predict --system results/final/both/system.json a.wav b.flac ...
+  uv run python -m sotamos.predict --runs exp/cv/ours_base/s0_f* --out scores.csv a.wav ...
+
+--system runs an exported final ensemble (scripts/export_final.py): fine-tuned members average
+their fold checkpoints; probe members average their fold models on frozen SSL features.
+--runs averages fine-tuned run directories directly.
 
 Each run directory needs model.pt (train with `save_ckpt: true`). Every file is read at its own
 sampling rate. The SSL branch gets the waveform (resampled to 16 kHz, or the native samples for
@@ -10,6 +15,7 @@ maps to 24 kHz and 44.1 kHz to 48 kHz. Scores are mixed-rate listening-test MOS.
 """
 
 import argparse
+import json
 import math
 import sys
 from pathlib import Path
@@ -21,7 +27,8 @@ import torchaudio.functional as AF
 
 from sotamos.data import SR_INDEX, TEST_INDEX
 from sotamos.features import normalise, raw_features
-from sotamos.model import MOSModel
+from sotamos.model import MOSModel, SSLBackbone
+from sotamos.probes import layer_features, pooled_hidden_states, predict_fold
 
 
 def load_audio(path):
@@ -62,14 +69,47 @@ class Predictor:
             return float(self.model(b)["score"].float().item())
 
 
+class SystemScorer:
+    """Weighted ensemble from results/final/<group>/system.json."""
+
+    def __init__(self, system_path, device):
+        self.device, self.members, self.ssl = device, [], {}
+        for m in json.load(open(system_path))["members"]:
+            if m["type"] == "finetuned":
+                self.members.append((m["weight"], m, [Predictor(r, device) for r in m["runs"]]))
+            else:
+                if m["backbone"] not in self.ssl:
+                    self.ssl[m["backbone"]] = SSLBackbone(m["backbone"], layer="weighted").to(device).eval()
+                self.members.append((m["weight"], m, torch.load(m["path"], weights_only=False)["states"]))
+
+    def __call__(self, x, sr, r16):
+        feats, total, wsum = {}, 0.0, 0.0
+        sr_idx = np.array([SR_INDEX[nearest_rate(sr)]])
+        for w, m, obj in self.members:
+            if m["type"] == "finetuned":
+                score = float(np.mean([p(x, sr, r16) for p in obj]))
+            else:
+                key = (m["backbone"], m["input_mode"])
+                if key not in feats:
+                    wav = x if m["input_mode"] == "native" else r16
+                    feats[key] = pooled_hidden_states(self.ssl[m["backbone"]], wav, self.device)[None]
+                F = layer_features(feats[key], m["layer"], m["window"])
+                score = float(np.mean([predict_fold(st, m["kind"], F, sr_idx)[0] for st in obj]))
+            total += w * score
+            wsum += w
+        return total / wsum
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--runs", nargs="+", required=True, help="run directories with model.pt; scores are averaged")
+    ap.add_argument("--system", help="exported final ensemble (results/final/<group>/system.json)")
+    ap.add_argument("--runs", nargs="+", help="run directories with model.pt; scores are averaged")
     ap.add_argument("--out", help="CSV path (default: stdout)")
     ap.add_argument("files", nargs="+")
     args = ap.parse_args()
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    predictors = [Predictor(r, device) for r in args.runs]
+    assert args.system or args.runs, "give --system or --runs"
+    predictors = [SystemScorer(args.system, device)] if args.system else [Predictor(r, device) for r in args.runs]
     lines = ["file,sampling_rate,mos"]
     for f in args.files:
         x, sr, r16 = load_audio(f)
